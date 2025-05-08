@@ -1,14 +1,14 @@
-import { IAgent } from '@/types/agent'
+import { useAgentStore } from '@/store/agent.store'
 import { Button } from '@heroui/button'
 import { Input, Select, SelectItem } from '@heroui/react'
 import { ListIcon, PlusIcon, XIcon } from 'lucide-react'
-import React, { useState } from 'react'
+import React from 'react'
 import { Link } from 'react-router-dom'
 import AgentItem from './AgentItem'
-import { animals, dummyAgents } from './dummy-agents'
+import { animals } from './dummy-agents'
 
 const Agents: React.FC = () => {
-  const [agents] = useState<IAgent[]>(dummyAgents)
+  const { agents } = useAgentStore()
 
   return (
     <div className="flex h-screen max-h-screen w-full flex-col border-r border-primary-500/20 bg-white dark:bg-neutral-950 lg:w-[400px]">

@@ -9,3 +9,12 @@ export interface IAgent {
   company_id?: string
   created_at: string
 }
+
+export interface IAgentPayload {
+  agent_name: string
+  description: string
+  agent_style: string
+  on_status: boolean
+  tools: Array<string>
+  company_id: string
+}
