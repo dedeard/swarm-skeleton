@@ -1,4 +1,7 @@
-import { Outlet } from 'react-router-dom'
+import { useAgentStore } from '@/store/agent.store'
+import { useLLMStore } from '@/store/llm.store'
+import { useToolStore } from '@/store/tool.store'
+import { LoaderFunction, Outlet } from 'react-router-dom'
 import Navbar from './components/Navbar'
 
 export const Component: React.FC = () => {
@@ -14,4 +17,17 @@ export const Component: React.FC = () => {
   )
 }
 
-export default Component
+export const loader: LoaderFunction = async () => {
+  let promises = []
+  const { agentsLoaded, fetchAgents } = useAgentStore.getState()
+  const { toolsLoaded, fetchTools } = useToolStore.getState()
+  const { LLMloaded, fetchLLMs } = useLLMStore.getState()
+
+  if (!agentsLoaded) promises.push(fetchAgents())
+  if (!toolsLoaded) promises.push(fetchTools())
+  if (!LLMloaded) promises.push(fetchLLMs())
+
+  await Promise.all(promises)
+
+  return {}
+}

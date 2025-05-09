@@ -1,11 +1,10 @@
 import { useAgentStore } from '@/store/agent.store'
 import { Button } from '@heroui/button'
-import { Input, Select, SelectItem } from '@heroui/react'
+import { Input } from '@heroui/react'
 import { ListIcon, PlusIcon, XIcon } from 'lucide-react'
 import React from 'react'
 import { Link } from 'react-router-dom'
 import AgentItem from './AgentItem'
-import { animals } from './dummy-agents'
 
 const Agents: React.FC = () => {
   const { agents } = useAgentStore()
@@ -30,11 +29,11 @@ const Agents: React.FC = () => {
         <div className="flex items-end gap-3 py-3">
           <div className="flex-1">
             <span className="text-xs">Filter by category:</span>
-            <Select placeholder="Select categories" size="sm" className="max-w-sm" selectionMode="multiple">
+            {/* <Select placeholder="Select categories" size="sm" className="max-w-sm" selectionMode="multiple">
               {animals.map((animal) => (
                 <SelectItem key={animal.key}>{animal.label}</SelectItem>
               ))}
-            </Select>
+            </Select> */}
           </div>
           <Button isIconOnly size="sm">
             <ListIcon size={14} />

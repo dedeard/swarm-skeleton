@@ -1,14 +1,61 @@
-import { Button } from '@heroui/button'
-import { Input, Select, SelectItem, Textarea } from '@heroui/react'
+import { useAgentStore } from '@/store/agent.store'
+import { useToolStore } from '@/store/tool.store'
+import { IAgentPayload } from '@/types/agent'
+import { addToast, Button, Input, Select, SelectItem, Textarea } from '@heroui/react'
 import { Switch } from '@heroui/switch'
-import { HomeIcon, RefreshCwIcon, XIcon } from 'lucide-react'
+import { yupResolver } from '@hookform/resolvers/yup'
+import { HomeIcon, XIcon } from 'lucide-react'
 import React, { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useForm } from 'react-hook-form'
+import { Link, useNavigate } from 'react-router-dom'
+import * as yup from 'yup'
+
+const schema = yup.object({
+  agent_name: yup.string().required(),
+  description: yup.string().required(),
+  agent_style: yup.string().required(),
+  on_status: yup.boolean(),
+  tools: yup.array().of(yup.string()).optional(),
+})
+
+type FormValues = yup.InferType<typeof schema>
 
 const CreateAgent: React.FC = () => {
-  const [enabled, setEnabled] = useState(true)
+  const { tools: allTools } = useToolStore()
+  const [loading, setLoading] = useState(false)
+  const { addAgent } = useAgentStore()
+  const navigate = useNavigate()
+
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(schema),
+  })
+
+  const tools = watch('tools')
+  const enabled = watch('on_status')
+
+  const onSubmit = async (data: FormValues) => {
+    setLoading(true)
+    try {
+      await addAgent(data as IAgentPayload)
+      addToast({ title: 'Agent created successfully' })
+      navigate('/agents')
+    } catch (e: any) {
+      addToast({ color: 'danger', title: e.message })
+      setLoading(false)
+    }
+  }
+
   return (
-    <div className="absolute left-0 z-10 flex h-screen max-h-screen w-full flex-1 flex-col bg-white dark:bg-neutral-950 lg:static lg:w-[calc(100vw-400px)] lg:max-w-3xl">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="absolute left-0 z-10 flex h-screen max-h-screen w-full flex-1 flex-col bg-white dark:bg-neutral-950 lg:static lg:w-[calc(100vw-400px)] lg:max-w-3xl"
+    >
       <div className="flex justify-between px-3 py-4">
         <div>
           <span className="block text-lg">Create Agent</span>
@@ -33,7 +80,7 @@ const CreateAgent: React.FC = () => {
             </div>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-2">
-                <Switch isSelected={enabled} onValueChange={setEnabled} color="success" className="ml-2" />
+                <Switch isSelected={enabled} onValueChange={(value) => setValue('on_status', value)} color="success" className="ml-2" />
                 <span className={`text-sm ${enabled ? 'text-primary-500' : 'text-gray-500 dark:text-gray-400'}`}>
                   {enabled ? 'Enabled' : 'Disabled'}
                 </span>
@@ -41,87 +88,74 @@ const CreateAgent: React.FC = () => {
             </div>
           </div>
 
-          <Input label="Agent Name" placeholder="e.g., Customer Support Bot" isRequired variant="bordered" className="w-full" />
+          <Input
+            label="Agent Name"
+            placeholder="e.g., Customer Support Bot"
+            {...register('agent_name')}
+            isInvalid={!!errors.agent_name}
+            errorMessage={errors.agent_name?.message}
+            variant="bordered"
+            className="w-full"
+          />
 
-          <div className="relative">
-            <Textarea
-              label="Description"
-              placeholder="Describe what this agent does"
-              minRows={4}
-              maxRows={8}
-              variant="bordered"
-              className="w-full"
-            />
-            <Button
-              variant="light"
-              color="default"
-              startContent={<RefreshCwIcon size={16} />}
-              size="sm"
-              className="absolute right-1 top-1 text-gray-700 dark:text-gray-300"
-            >
-              Optimize by AI
-            </Button>
-          </div>
-          <div className="relative">
-            <Textarea
-              label="Agent Style / Instructions"
-              placeholder="e.g., conversational, or provide specific instructions"
-              minRows={4}
-              maxRows={8}
-              variant="bordered"
-              className="w-full"
-              classNames={{ mainWrapper: '!border-primary-600' }}
-            />
-            <Button
-              variant="light"
-              color="default"
-              startContent={<RefreshCwIcon size={16} />}
-              size="sm"
-              className="absolute right-1 top-1 text-gray-700 dark:text-gray-300"
-            >
-              Optimize by AI
-            </Button>
-          </div>
+          <Textarea
+            label="Description"
+            placeholder="Describe what this agent does"
+            minRows={4}
+            maxRows={8}
+            {...register('description')}
+            isInvalid={!!errors.description}
+            errorMessage={errors.description?.message}
+            variant="bordered"
+            className="w-full"
+          />
+
+          <Textarea
+            label="Agent Style / Instructions"
+            placeholder="e.g., conversational, or provide specific instructions"
+            minRows={4}
+            maxRows={8}
+            {...register('agent_style')}
+            isInvalid={!!errors.agent_style}
+            errorMessage={errors.agent_style?.message}
+            variant="bordered"
+            className="w-full"
+          />
 
           <Select
-            label="Category"
-            isDisabled
-            placeholder="Select a category"
+            label="Tools"
+            selectionMode="multiple"
+            // @ts-expect-error
+            selectedKeys={tools ?? []}
+            onSelectionChange={(keys) => setValue('tools', Array.from(keys) as string[])}
             variant="bordered"
-            defaultSelectedKeys={['general']}
             className="w-full"
+            renderValue={(el) => el.map((el) => el.rendered).join(', ')}
           >
-            <SelectItem key="general">General Assistant</SelectItem>
-            <SelectItem key="customer">Customer Support</SelectItem>
-            <SelectItem key="sales">Sales Assistant</SelectItem>
-            <SelectItem key="coding">Coding Assistant</SelectItem>
-          </Select>
-
-          <Select label="Default LLM" placeholder="Select LLM..." variant="bordered" className="w-full">
-            <SelectItem key="gpt4">GPT-4</SelectItem>
-            <SelectItem key="claude">Claude</SelectItem>
-            <SelectItem key="llama">Llama 3</SelectItem>
-            <SelectItem key="mistral">Mistral</SelectItem>
-          </Select>
-
-          <Select label="Tools" placeholder="Select tools..." variant="bordered" className="w-full" selectionMode="multiple">
-            <SelectItem key="gpt4">GPT-4</SelectItem>
-            <SelectItem key="claude">Claude</SelectItem>
-            <SelectItem key="llama">Llama 3</SelectItem>
-            <SelectItem key="mistral">Mistral</SelectItem>
+            {allTools.map((tool) => (
+              <SelectItem key={tool.tool_id} textValue={tool.tool_id}>
+                {tool.name}
+              </SelectItem>
+            ))}
           </Select>
 
           <div className="flex justify-end gap-2">
-            <Button variant="flat" color="default" className="font-medium">
+            <Button variant="flat" color="default" isDisabled={loading} className="font-medium" type="button">
               Cancel
             </Button>
-            <Button color="primary" className="bg-primary-500 font-medium dark:bg-primary-600">
+            <Button
+              type="submit"
+              color="primary"
+              isDisabled={loading}
+              isLoading={loading}
+              className="bg-primary-500 font-medium dark:bg-primary-600"
+            >
               Create Agent
             </Button>
           </div>
         </div>
       </div>
-    </div>
+    </form>
   )
 }
 
