@@ -35,6 +35,10 @@ const routes: RouteObject[] = [
             path: 'create',
             lazy: () => import('@/pages/home/agents/create/page'),
           },
+          {
+            path: ':agentId/edit',
+            lazy: () => import('@/pages/home/agents/edit/page'),
+          },
         ],
       },
     ],

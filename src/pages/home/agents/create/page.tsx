@@ -1,4 +1,4 @@
-import CreateAgent from '@/components/features/agents/CreateAgent'
+import CreateAgent from '@/components/features/agents/AgentForm'
 import React from 'react'
 
 export const Component: React.FC = () => {

@@ -1,11 +1,11 @@
 import { useAgentStore } from '@/store/agent.store'
 import { useToolStore } from '@/store/tool.store'
-import { IAgentPayload } from '@/types/agent'
+import { IAgent, IAgentPayload } from '@/types/agent'
 import { addToast, Button, Input, Select, SelectItem, Textarea } from '@heroui/react'
 import { Switch } from '@heroui/switch'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { HomeIcon, XIcon } from 'lucide-react'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
 import * as yup from 'yup'
@@ -20,21 +20,38 @@ const schema = yup.object({
 
 type FormValues = yup.InferType<typeof schema>
 
-const CreateAgent: React.FC = () => {
+interface AgentFormProps {
+  agent?: IAgent
+}
+
+const AgentForm: React.FC<AgentFormProps> = ({ agent }) => {
   const { tools: allTools } = useToolStore()
   const [loading, setLoading] = useState(false)
-  const { addAgent } = useAgentStore()
+  const { addAgent, editAgent } = useAgentStore()
   const navigate = useNavigate()
+  const isEditMode = !!agent
 
   const {
-    register,
     handleSubmit,
     setValue,
     watch,
+    reset,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(schema),
   })
+
+  useEffect(() => {
+    if (agent) {
+      reset({
+        agent_name: agent.agent_name,
+        description: agent.description,
+        agent_style: agent.agent_style || '',
+        on_status: agent.on_status,
+        tools: agent.tools,
+      })
+    }
+  }, [agent?.agent_id, reset])
 
   const tools = watch('tools')
   const enabled = watch('on_status')
@@ -42,8 +59,13 @@ const CreateAgent: React.FC = () => {
   const onSubmit = async (data: FormValues) => {
     setLoading(true)
     try {
-      await addAgent(data as IAgentPayload)
-      addToast({ title: 'Agent created successfully' })
+      if (isEditMode && agent) {
+        await editAgent(agent.agent_id, data as IAgentPayload)
+        addToast({ title: 'Agent updated successfully' })
+      } else {
+        await addAgent(data as IAgentPayload)
+        addToast({ title: 'Agent created successfully' })
+      }
       navigate('/agents')
     } catch (e: any) {
       addToast({ color: 'danger', title: e.message })
@@ -58,8 +80,10 @@ const CreateAgent: React.FC = () => {
     >
       <div className="flex justify-between px-3 py-4">
         <div>
-          <span className="block text-lg">Create Agent</span>
-          <span className="block text-xs opacity-75">Define the properties for your new backend agent.</span>
+          <span className="block text-lg">{isEditMode ? 'Edit Agent' : 'Create Agent'}</span>
+          <span className="block text-xs opacity-75">
+            {isEditMode ? 'Update the properties for your backend agent.' : 'Define the properties for your new backend agent.'}
+          </span>
         </div>
         <Button as={Link} isIconOnly size="sm" to="/agents" variant="light" radius="full">
           <XIcon size={20} />
@@ -74,7 +98,9 @@ const CreateAgent: React.FC = () => {
                 <HomeIcon size={18} />
               </div>
               <div>
-                <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">New Agent</h2>
+                <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+                  {isEditMode ? agent?.agent_name || 'Edit Agent' : 'New Agent'}
+                </h2>
                 <p className="text-sm text-gray-500 dark:text-gray-400">Agent summary will be automatically generated after saving</p>
               </div>
             </div>
@@ -91,7 +117,8 @@ const CreateAgent: React.FC = () => {
           <Input
             label="Agent Name"
             placeholder="e.g., Customer Support Bot"
-            {...register('agent_name')}
+            value={watch('agent_name')}
+            onChange={(e) => setValue('agent_name', e.currentTarget.value)}
             isInvalid={!!errors.agent_name}
             errorMessage={errors.agent_name?.message}
             variant="bordered"
@@ -103,7 +130,8 @@ const CreateAgent: React.FC = () => {
             placeholder="Describe what this agent does"
             minRows={4}
             maxRows={8}
-            {...register('description')}
+            value={watch('description')}
+            onChange={(e) => setValue('description', e.currentTarget.value)}
             isInvalid={!!errors.description}
             errorMessage={errors.description?.message}
             variant="bordered"
@@ -115,7 +143,8 @@ const CreateAgent: React.FC = () => {
             placeholder="e.g., conversational, or provide specific instructions"
             minRows={4}
             maxRows={8}
-            {...register('agent_style')}
+            value={watch('agent_style')}
+            onChange={(e) => setValue('agent_style', e.currentTarget.value)}
             isInvalid={!!errors.agent_style}
             errorMessage={errors.agent_style?.message}
             variant="bordered"
@@ -140,7 +169,7 @@ const CreateAgent: React.FC = () => {
           </Select>
 
           <div className="flex justify-end gap-2">
-            <Button variant="flat" color="default" isDisabled={loading} className="font-medium" type="button">
+            <Button variant="flat" as={Link} to="/agents" color="default" isDisabled={loading} className="font-medium">
               Cancel
             </Button>
             <Button
@@ -150,7 +179,7 @@ const CreateAgent: React.FC = () => {
               isLoading={loading}
               className="bg-primary-500 font-medium dark:bg-primary-600"
             >
-              Create Agent
+              {isEditMode ? 'Update Agent' : 'Create Agent'}
             </Button>
           </div>
         </div>
@@ -159,4 +188,4 @@ const CreateAgent: React.FC = () => {
   )
 }
 
-export default CreateAgent
+export default AgentForm

@@ -2,6 +2,7 @@ import { IAgent } from '@/types/agent'
 import { Button } from '@heroui/button'
 import { DotIcon, HomeIcon, PenIcon } from 'lucide-react'
 import React from 'react'
+import { Link } from 'react-router-dom'
 import { AgentUsageChart } from './AgentUsageChart'
 
 const AgentItem: React.FC<{ agent: IAgent }> = ({ agent }) => {
@@ -37,7 +38,14 @@ const AgentItem: React.FC<{ agent: IAgent }> = ({ agent }) => {
           <Button variant="flat" size="sm" color="success">
             Chat
           </Button>
-          <Button variant="light" size="sm" color="secondary" startContent={<PenIcon size={10} />}>
+          <Button
+            as={Link}
+            to={`/agents/${agent.agent_id}/edit`}
+            variant="light"
+            size="sm"
+            color="secondary"
+            startContent={<PenIcon size={10} />}
+          >
             Edit
           </Button>
         </div>
