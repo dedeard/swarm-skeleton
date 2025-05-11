@@ -35,7 +35,7 @@ const AgentItem: React.FC<{ agent: IAgent }> = ({ agent }) => {
         </div>
 
         <div className="mt-3 flex gap-3">
-          <Button variant="flat" size="sm" color="success">
+          <Button as={Link} to={`/?agent=${agent.agent_id}`} variant="flat" size="sm" color="success">
             Chat
           </Button>
           <Button

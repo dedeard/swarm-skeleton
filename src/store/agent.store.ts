@@ -9,7 +9,7 @@ interface AgentState {
   agentsLoaded: boolean
 
   // Actions
-  fetchAgents: () => Promise<void>
+  fetchAgents: () => Promise<IAgent[]>
   fetchAgentById: (agentId: string) => Promise<IAgent | undefined>
   addAgent: (payload: IAgentPayload) => Promise<void>
   editAgent: (agentId: string, payload: IAgentPayload) => Promise<void>
@@ -23,12 +23,9 @@ export const useAgentStore = create<AgentState>()((set) => ({
 
   // Actions
   fetchAgents: async () => {
-    try {
-      const agents = await getAgents()
-      set({ agents, agentsLoaded: true })
-    } catch (error) {
-      console.error('Failed to fetch agents:', error)
-    }
+    const agents = await getAgents()
+    set({ agents, agentsLoaded: true })
+    return agents
   },
 
   fetchAgentById: async (agentId: string) => {
