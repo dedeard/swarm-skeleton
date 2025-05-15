@@ -1,3 +1,4 @@
+import { useTheme } from 'next-themes'
 import React from 'react'
 import ReactMarkdown from 'react-markdown'
 import { PrismLight as SyntaxHighlighter } from 'react-syntax-highlighter'
@@ -9,7 +10,7 @@ import markdownLang from 'react-syntax-highlighter/dist/esm/languages/prism/mark
 import tsx from 'react-syntax-highlighter/dist/esm/languages/prism/tsx'
 import typescript from 'react-syntax-highlighter/dist/esm/languages/prism/typescript'
 import yaml from 'react-syntax-highlighter/dist/esm/languages/prism/yaml'
-import { okaidia } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism'
 
 SyntaxHighlighter.registerLanguage('tsx', tsx)
 SyntaxHighlighter.registerLanguage('typescript', typescript)
@@ -21,7 +22,7 @@ SyntaxHighlighter.registerLanguage('yaml', yaml)
 SyntaxHighlighter.registerLanguage('markdown', markdownLang)
 
 interface MarkdownRendererProps {
-  markdown: string
+  content: string
 }
 
 interface CustomCodeProps extends React.HTMLAttributes<HTMLElement> {
@@ -29,7 +30,8 @@ interface CustomCodeProps extends React.HTMLAttributes<HTMLElement> {
   inline?: boolean
 }
 
-const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ markdown }) => {
+const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content }) => {
+  const { theme } = useTheme()
   return (
     <ReactMarkdown
       components={{
@@ -53,13 +55,15 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ markdown }) => {
           if (language) {
             return (
               <SyntaxHighlighter
-                style={okaidia as any}
+                style={(theme === 'light' ? oneLight : oneDark) as any}
                 language={language}
                 PreTag="div"
-                className="rounded-md !bg-gray-800 text-sm shadow-md"
+                className="rounded-md text-sm shadow-md"
                 showLineNumbers={false}
                 wrapLines={true}
-                lineProps={{ style: { wordBreak: 'break-all', whiteSpace: 'pre-wrap', lineHeight: '1.5' } }}
+                lineProps={{
+                  style: { wordBreak: 'break-all', whiteSpace: 'pre-wrap', lineHeight: 1, fontSize: 11 },
+                }}
                 {...rest}
               >
                 {String(children).replace(/\n$/, '')}
@@ -68,7 +72,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ markdown }) => {
           }
 
           return (
-            <pre className="overflow-x-auto rounded-md bg-gray-100 p-4 text-sm leading-normal shadow-md dark:bg-gray-800" {...rest}>
+            <pre className="overflow-x-auto rounded-md bg-gray-100 p-4 text-sm leading-normal shadow-md dark:bg-neutral-900" {...rest}>
               <code className={className}>{children}</code>
             </pre>
           )
@@ -168,7 +172,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ markdown }) => {
         ),
       }}
     >
-      {markdown}
+      {content}
     </ReactMarkdown>
   )
 }

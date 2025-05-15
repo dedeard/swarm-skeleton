@@ -38,16 +38,17 @@ export default {
       addCommonColors: true,
       layout: {
         radius: {
-          small: '2px',
-          medium: '4px',
-          large: '6px',
+          small: '2px', // rounded-small
+          medium: '4px', // rounded-medium
+          large: '6px', // rounded-large
         },
         borderWidth: {
-          small: '1px',
-          medium: '1px',
-          large: '2px',
+          small: '1px', // border-small
+          medium: '1px', // border-medium
+          large: '2px', // border-large
         },
       },
     }),
+    require('@tailwindcss/typography'),
   ],
 }
