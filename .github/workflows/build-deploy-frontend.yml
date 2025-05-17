@@ -50,6 +50,10 @@ jobs:
   build:
     name: Build Frontend Docker Image
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write # Required for OIDC to Azure
+      contents: read # Default, good to keep if other permissions are set
+      packages: write # Required for docker/build-push-action to push to ACR if ACR is GitHub Packages
     environment: ${{ github.event.inputs.environment || 'staging' }}
     needs: fetch-secrets
     
@@ -66,7 +70,6 @@ jobs:
           client-id: ${{ secrets.AZURE_CLIENT_ID }}
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
-          auth-type: 'SERVICE_PRINCIPAL'
 
       - name: Log in to Azure Container Registry
         uses: azure/docker-login@v1
