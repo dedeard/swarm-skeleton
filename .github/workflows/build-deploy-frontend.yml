@@ -1,30 +1,68 @@
-name: Fetch Secrets from Azure Key Vault
+name: Build and Deploy Frontend
 
 on:
-  workflow_call:
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'package.json'
+      - 'yarn.lock'
+      - 'Dockerfile*'
+      - '.github/workflows/build-deploy-frontend.yml'
+  pull_request:
+    branches:
+      - main
+      - master
+    paths:
+      - 'src/**'
+      - 'public/**'
+      - 'package.json'
+      - 'yarn.lock'
+      - 'Dockerfile*'
+  workflow_dispatch:
     inputs:
       environment:
-        description: 'Environment to use (staging or production)'
+        description: 'Environment to deploy to'
         required: true
-        type: string
-    outputs:
-      acr_login_server:
-        description: 'Azure Container Registry login server'
-        value: ${{ jobs.fetch-secrets.outputs.acr_login_server }}
-      api_url:
-        description: 'Backend API URL'
-        value: ${{ jobs.fetch-secrets.outputs.api_url }}
+        default: 'staging'
+        type: choice
+        options:
+          - staging
+          - production
+      skip_deploy:
+        description: 'Skip deployment (build only)'
+        required: false
+        default: false
+        type: boolean
 
 jobs:
+  # Call the fetch-secrets workflow to get secrets from Key Vault
   fetch-secrets:
-    name: Fetch Secrets from Azure Key Vault
+    name: Fetch Secrets from Key Vault
+    uses: ./.github/workflows/fetch-secrets.yml
+    with:
+      environment: ${{ github.event.inputs.environment || 'staging' }}
+    secrets: inherit
+
+  build:
+    name: Build Frontend Docker Image
     runs-on: ubuntu-latest
-    environment: ${{ inputs.environment }}
-    outputs:
-      acr_login_server: ${{ steps.get-secrets.outputs.acr-login-server }}
-      api_url: ${{ steps.get-secrets.outputs.api-url }}
-      
+    permissions:
+      contents: read # Required for checkout
+      packages: write # If pushing to GitHub Packages or an ACR that needs this scope
+    environment: ${{ github.event.inputs.environment || 'staging' }}
+    needs: fetch-secrets
+    
     steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
       - name: Log in to Azure
         uses: azure/login@v1
         with:
@@ -34,29 +72,142 @@ jobs:
           client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
           auth-type: 'SERVICE_PRINCIPAL'
 
-      # Determine which key vault to use based on environment
-      - name: Set Key Vault Name
-        id: set-keyvault
-        run: |
-          if [ "${{ inputs.environment }}" == "production" ]; then
-            echo "keyvault_name=${{ secrets.PRODUCTION_KEY_VAULT_NAME }}" >> $GITHUB_OUTPUT
-          else
-            echo "keyvault_name=${{ secrets.STAGING_KEY_VAULT_NAME }}" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Get Key Vault Secrets
-        id: get-secrets
-        uses: azure/get-keyvault-secrets@v1
+      - name: Log in to Azure Container Registry
+        uses: azure/docker-login@v1
         with:
-          keyvault: ${{ steps.set-keyvault.outputs.keyvault_name }}
-          secrets: 'acr-login-server, acr-username, acr-password, api-url, supabase-service-role-key, supabase-access-token'
-          
-      # Set secrets as both outputs (for workflow_call) and environment variables (for current workflow)
-      - name: Set environment variables
+          login-server: ${{ needs.fetch-secrets.outputs.acr_login_server }}
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
+
+      - name: Prepare Build Variables
+        id: vars
         run: |
-          echo "ACR_LOGIN_SERVER=${{ steps.get-secrets.outputs.acr-login-server }}" >> $GITHUB_ENV
-          echo "ACR_USERNAME=${{ steps.get-secrets.outputs.acr-username }}" >> $GITHUB_ENV
-          echo "ACR_PASSWORD=${{ steps.get-secrets.outputs.acr-password }}" >> $GITHUB_ENV
-          echo "API_URL=${{ steps.get-secrets.outputs.api-url }}" >> $GITHUB_ENV
-          echo "SUPABASE_SERVICE_ROLE_KEY=${{ steps.get-secrets.outputs.supabase-service-role-key }}" >> $GITHUB_ENV
-          echo "SUPABASE_ACCESS_TOKEN=${{ steps.get-secrets.outputs.supabase-access-token }}" >> $GITHUB_ENV
+          # Extract environment from workflow input or default to staging
+          ENVIRONMENT="${{ github.event.inputs.environment || 'staging' }}"
+          
+          # Define image name based on environment
+          FRONTEND_IMAGE="${{ needs.fetch-secrets.outputs.acr_login_server }}/frontend:${ENVIRONMENT}-${GITHUB_SHA::8}"
+          
+          # Set outputs for later steps
+          echo "frontend_image=${FRONTEND_IMAGE}" >> $GITHUB_OUTPUT
+          echo "environment=${ENVIRONMENT}" >> $GITHUB_OUTPUT
+
+      # Build and push frontend image
+      - name: Build and push frontend image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ steps.vars.outputs.frontend_image }}
+          cache-from: type=registry,ref=${{ steps.vars.outputs.frontend_image }}
+          cache-to: type=inline
+          build-args: |
+            ENVIRONMENT=${{ steps.vars.outputs.environment }}
+            VITE_API_URL=${{ needs.fetch-secrets.outputs.api_url }}
+
+      # Update latest tag for the environment
+      - name: Tag image as latest for environment
+        run: |
+          # Tag frontend
+          docker tag ${{ steps.vars.outputs.frontend_image }} ${{ needs.fetch-secrets.outputs.acr_login_server }}/frontend:${{ steps.vars.outputs.environment }}-latest
+          docker push ${{ needs.fetch-secrets.outputs.acr_login_server }}/frontend:${{ steps.vars.outputs.environment }}-latest
+
+      # Create a deployment summary
+      - name: Build Summary
+        run: |
+          echo "## Frontend Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Environment: ${{ steps.vars.outputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Component | Image |" >> $GITHUB_STEP_SUMMARY
+          echo "| --- | --- |" >> $GITHUB_STEP_SUMMARY
+          echo "| Frontend | \`${{ steps.vars.outputs.frontend_image }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "This image is also tagged as \`${{ steps.vars.outputs.environment }}-latest\` for deployment." >> $GITHUB_STEP_SUMMARY
+
+  deploy:
+    name: Deploy Frontend
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read # Required for checkout
+    needs: [fetch-secrets, build]
+    if: ${{ (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && (github.event.inputs.skip_deploy != 'true') }}
+    environment: ${{ github.event.inputs.environment || 'staging' }}
+
+    steps:
+      - name: Checkout Infrastructure Repo
+        uses: actions/checkout@v3
+        with:
+          repository: Swarm-by-CHI/swarm-deployement
+          path: infrastructure
+          token: ${{ secrets.INFRA_REPO_PAT }}
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: 1.3.0
+
+      - name: Install Terragrunt
+        run: |
+          wget -O terragrunt https://github.com/gruntwork-io/terragrunt/releases/download/v0.45.0/terragrunt_linux_amd64
+          chmod +x terragrunt
+          sudo mv terragrunt /usr/local/bin/
+
+      - name: Log in to Azure
+        uses: azure/login@v1
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+          client-secret: ${{ secrets.AZURE_CLIENT_SECRET }}
+          auth-type: 'SERVICE_PRINCIPAL'
+
+      - name: Prepare environment
+        id: env
+        run: |
+          # Determine environment from workflow input or from context
+          ENVIRONMENT="${{ github.event.inputs.environment || 'staging' }}"
+          
+          # Create a .tfvars file with updated image tags
+          cd infrastructure
+          mkdir -p $ENVIRONMENT
+          
+          cat > $ENVIRONMENT/frontend.auto.tfvars <<EOF
+          container_images = {
+            "frontend" = "${{ needs.fetch-secrets.outputs.acr_login_server }}/frontend:$ENVIRONMENT-latest"
+          }
+          EOF
+          
+          # Output for later steps
+          echo "environment=$ENVIRONMENT" >> $GITHUB_OUTPUT
+
+      - name: Terragrunt Init
+        run: |
+          cd infrastructure/${{ steps.env.outputs.environment }}
+          terragrunt init
+
+      - name: Terragrunt Plan
+        run: |
+          cd infrastructure/${{ steps.env.outputs.environment }}
+          terragrunt plan -out=tfplan
+
+      - name: Terragrunt Apply
+        run: |
+          cd infrastructure/${{ steps.env.outputs.environment }}
+          terragrunt apply -auto-approve tfplan
+
+      - name: Generate Deployment Summary
+        run: |
+          cd infrastructure/${{ steps.env.outputs.environment }}
+          
+          # Extract frontend URL from outputs if available
+          echo "## Frontend Deployment Summary for ${{ steps.env.outputs.environment }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          # Try to extract the frontend URL from terraform outputs
+          if terragrunt output -raw frontend_url 2>/dev/null; then
+            echo "Frontend URL: $(terragrunt output -raw frontend_url)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Frontend deployed successfully to ${{ steps.env.outputs.environment }} environment" >> $GITHUB_STEP_SUMMARY
+          fi
