@@ -44,6 +44,7 @@ jobs:
     name: Fetch Secrets from Key Vault
     permissions:
       id-token: write # Allow the called workflow to request OIDC tokens
+      contents: read  # Allow the called workflow to have read access to contents
     uses: ./.github/workflows/fetch-secrets.yml
     with:
       environment: ${{ github.event.inputs.environment || 'staging' }}
