@@ -1,3 +1,4 @@
+import useDynamicUrl from '@/hooks/use-dynamic-url'
 import { useAgentStore } from '@/store/agent.store'
 import { Button, Input } from '@heroui/react'
 import { PlusIcon, XIcon } from 'lucide-react'
@@ -14,6 +15,8 @@ const Agents: React.FC = () => {
     return agents.filter((agent) => agent.agent_name.toLowerCase().includes(searchTerm.toLowerCase()))
   }, [agents, searchTerm])
 
+  const url = useDynamicUrl('/')
+
   return (
     <div className="flex h-screen max-h-screen w-full flex-col border-r border-primary-500/20 bg-white dark:bg-neutral-950 lg:w-[400px]">
       <div className="flex items-center justify-between p-3">
@@ -22,7 +25,7 @@ const Agents: React.FC = () => {
           <Button as={Link} to="/agents/create" isIconOnly size="sm" variant="light" radius="full" color="success">
             <PlusIcon size={20} />
           </Button>
-          <Button as={Link} isIconOnly size="sm" to="/" variant="light" radius="full">
+          <Button as={Link} isIconOnly size="sm" to={url} variant="light" radius="full">
             <XIcon size={20} />
           </Button>
         </div>

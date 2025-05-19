@@ -1,19 +1,16 @@
 import { Globe, Lightbulb, Loader2, Mic, Plus, Send } from 'lucide-react'
 import React from 'react'
-import { LLMmenu } from './components/LLMmenu'
 
 interface ChatInputBarProps {
-  selectedModel: string
   onSendMessage?: (message: string) => void
-  onSelectedModel: (model: string) => void
   disabled?: boolean
   isLoading?: boolean
 }
 
-const ChatInputBar: React.FC<ChatInputBarProps> = ({ onSendMessage, selectedModel, onSelectedModel, disabled, isLoading }) => {
+const ChatInputBar: React.FC<ChatInputBarProps> = ({ onSendMessage, disabled, isLoading }) => {
   const [inputValue, setInputValue] = React.useState('')
 
-  const isSendDisabled = disabled || isLoading || !selectedModel || !inputValue.trim()
+  const isSendDisabled = disabled || isLoading || !inputValue.trim()
   const isInputDisabled = disabled || isLoading
 
   const handleInputChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -48,11 +45,11 @@ const ChatInputBar: React.FC<ChatInputBarProps> = ({ onSendMessage, selectedMode
           value={inputValue}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}
-          placeholder={!selectedModel ? 'Please select a model first' : isLoading ? 'Sending...' : 'Ask anything...'}
+          placeholder={isLoading ? 'Sending...' : 'Ask anything...'}
           className="custom-scrollbar w-full resize-none overflow-y-auto bg-transparent px-1 py-2 text-sm text-gray-800 placeholder-gray-400 transition-colors duration-150 focus:outline-none dark:text-neutral-200 dark:placeholder-neutral-500 sm:text-base"
           rows={1}
           style={{ lineHeight: '1.5rem' }}
-          disabled={isInputDisabled || !selectedModel}
+          disabled={isInputDisabled}
         />
         <div className="flex items-end">
           <div className="mr-2 flex flex-wrap items-center space-x-1 pt-1.5 sm:mr-3 sm:space-x-2">
@@ -77,14 +74,12 @@ const ChatInputBar: React.FC<ChatInputBarProps> = ({ onSendMessage, selectedMode
             >
               <Lightbulb size={22} strokeWidth={1.5} />
             </button>
-
-            <LLMmenu selected={selectedModel} onSelected={onSelectedModel} disabled={isInputDisabled} />
           </div>
           <div className="ml-auto flex items-end space-x-2">
             <button
               aria-label="Voice input"
               className="mb-0.5 rounded-full p-2 text-gray-500 transition-colors duration-150 hover:bg-gray-200 hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:opacity-50 dark:text-neutral-400 dark:hover:bg-neutral-700 dark:hover:text-white"
-              disabled={isInputDisabled || !selectedModel}
+              disabled={isInputDisabled}
             >
               <Mic size={22} strokeWidth={1.5} />
             </button>

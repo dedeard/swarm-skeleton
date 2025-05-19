@@ -1,11 +1,11 @@
-import { IChat } from '@/types/chat'
+import { IChatMessage } from '@/types/agent'
 import React from 'react'
 import ChatMessageItem from './ChatMessageItem'
 import ChatStatusIndicator from './ChatStatusIndicator'
 import StreamingMessageDisplay from './StreamingMessageDisplay'
 
 interface ChatMessagesListProps {
-  chats: IChat[]
+  chats: IChatMessage[]
   streamMessage: string
   loading: boolean
   status: string
