@@ -1,6 +1,5 @@
 import { Spinner } from '@heroui/spinner'
 import { useEffect, useState } from 'react'
-import { twJoin } from 'tailwind-merge'
 import { useAuthStore } from './store/auth.store'
 
 const Boot: React.FC<React.PropsWithChildren> = ({ children }) => {
@@ -31,7 +30,7 @@ const Boot: React.FC<React.PropsWithChildren> = ({ children }) => {
       <div
         aria-busy="true"
         aria-label="Loading application"
-        className={twJoin('fixed inset-0 z-[99999] flex items-center justify-center bg-white', 'transition-opacity duration-500 ease-out')}
+        className="fixed inset-0 z-[99999] flex items-center justify-center bg-white transition-opacity duration-500 ease-out"
       >
         <Spinner color="success" className="scale-125" size="lg" />
       </div>

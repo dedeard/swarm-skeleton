@@ -1,15 +1,15 @@
 import MarkdownRenderer from '@/components/features/chat/MarkdownRenderer' // Assuming this path is correct
-import { IChat } from '@/types/chat' // Or your actual path to IChat
+import { IChatMessage } from '@/types/agent'
 import React from 'react'
 
 interface ChatMessageItemProps {
-  chat: IChat
+  chat: IChatMessage
 }
 
 const ChatMessageItem: React.FC<ChatMessageItemProps> = ({ chat }) => {
   const isUser = chat.role === 'user'
   const alignment = isUser ? 'justify-end' : 'justify-start'
-  const bubbleStyles = isUser ? 'rounded-xl bg-primary-600 text-white shadow-md dark:bg-primary-700' : 'text-gray-800 dark:text-gray-100' // Assistant might need its own bubble style if not just plain text
+  const bubbleStyles = isUser ? 'rounded-xl bg-primary-600 text-white shadow-md dark:bg-primary-700' : 'text-gray-800 dark:text-gray-100'
 
   return (
     <div className={`mb-3 flex w-full ${alignment}`}>

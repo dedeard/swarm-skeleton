@@ -1,4 +1,3 @@
-import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { RouterProvider } from 'react-router-dom'
 
@@ -7,7 +6,7 @@ import Boot from './boot'
 import router from './router'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
+  <>
     <Boot>
       <RouterProvider router={router} />
     </Boot>
@@ -19,5 +18,5 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       radial-gradient(circle at 80% 20%, rgba(0, 60, 30, 0.15) 0%, transparent 70%)`,
       }}
     /> */}
-  </React.StrictMode>,
+  </>,
 )
