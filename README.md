@@ -12,6 +12,9 @@ This is a template for creating applications using Vite and HeroUI (v2).
 - [Tailwind Variants](https://tailwind-variants.org)
 - [TypeScript](https://www.typescriptlang.org)
 - [Framer Motion](https://www.framer.com/motion)
+- [Zustand](https://zustand-demo.pmnd.rs/) - State management
+- [React Router](https://reactrouter.com/) - Routing
+- [Supabase](https://supabase.com/) - Authentication
 
 ## How to Use
 
@@ -44,6 +47,37 @@ public-hoist-pattern[]=*@heroui/*
 ```
 
 After modifying the `.npmrc` file, you need to run `pnpm install` again to ensure that the dependencies are installed correctly.
+
+## Project Architecture
+
+This project follows a clean, modular architecture designed for maintainability and scalability. Key architectural features include:
+
+- **Centralized API Client**: All API requests go through a single client for consistent error handling and authentication
+- **Custom Hooks**: Reusable hooks for common patterns like data fetching and authentication
+- **Organized State Management**: Zustand stores organized by domain
+- **Type Safety**: Comprehensive TypeScript types throughout the codebase
+- **Consistent Error Handling**: Centralized error handling utilities
+
+For more details, see the [ARCHITECTURE.md](./ARCHITECTURE.md) file.
+
+## Project Structure
+
+```
+src/
+├── components/       # Reusable UI components
+├── config/           # Configuration files
+├── hooks/            # Custom React hooks
+├── layouts/          # Page layouts
+├── pages/            # Page components
+├── router/           # Routing configuration
+├── services/         # API services
+├── store/            # State management
+├── styles/           # Global styles
+├── types/            # TypeScript type definitions
+├── utils/            # Utility functions
+├── boot.tsx          # Application bootstrap
+└── main.tsx          # Application entry point
+```
 
 ## License
 

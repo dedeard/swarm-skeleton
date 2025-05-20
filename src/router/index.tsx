@@ -5,24 +5,39 @@ import { Providers } from '@/pages/Providers'
 import { createBrowserRouter } from 'react-router-dom'
 import routes from './routes'
 
+/**
+ * Application Router Configuration
+ * Defines the routing structure of the application
+ */
 const router = createBrowserRouter([
   {
-    children: [
-      {
-        children: routes,
-        element: <AuthChecker private />,
-      },
-      {
-        children: [{ path: '/auth', lazy: () => import('@/pages/auth/page') }],
-        element: <AuthChecker guest />,
-      },
-      {
-        element: <NotFound />,
-        path: '*',
-      },
-    ],
+    // Root element with providers
     element: <Providers />,
     errorElement: <ErrorBoundary />,
+    children: [
+      // Protected routes (require authentication)
+      {
+        element: <AuthChecker private />,
+        children: routes,
+      },
+
+      // Guest routes (require no authentication)
+      {
+        element: <AuthChecker guest />,
+        children: [
+          {
+            path: '/auth',
+            lazy: () => import('@/pages/auth/page'),
+          },
+        ],
+      },
+
+      // Catch-all route for 404
+      {
+        path: '*',
+        element: <NotFound />,
+      },
+    ],
   },
 ])
 

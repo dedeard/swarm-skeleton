@@ -1,30 +1,39 @@
 import { Spinner } from '@heroui/spinner'
 import { useEffect, useState } from 'react'
+import { UI } from './config/constants'
 import { useAuthStore } from './store/auth.store'
 
+/**
+ * Boot Component
+ * Handles application initialization and loading state
+ */
 const Boot: React.FC<React.PropsWithChildren> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true)
-  const authLoading = useAuthStore((s) => s.loading)
-  const initialize = useAuthStore((s) => s.initialize)
   const [isMounted, setIsMounted] = useState(false)
 
+  const authLoading = useAuthStore((s) => s.loading)
+  const initialize = useAuthStore((s) => s.initialize)
+
+  // Initialize auth store when component mounts
   useEffect(() => {
     setIsMounted(true)
-    initialize() // Inisialisasi auth store saat komponen mount
+    initialize()
+
     return () => setIsMounted(false)
   }, [initialize])
 
+  // Handle loading state with minimum display time
   useEffect(() => {
     if (!authLoading && isMounted) {
-      // Minimum loading time
       const timer = setTimeout(() => {
         setIsLoading(false)
-      }, 1000)
+      }, UI.LOADING_DELAY)
 
       return () => clearTimeout(timer)
     }
   }, [authLoading, isMounted])
 
+  // Show loading spinner while initializing
   if (isLoading) {
     return (
       <div

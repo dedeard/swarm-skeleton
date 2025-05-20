@@ -1,25 +1,21 @@
-import { getCurrentUserAccessToken } from '@/utils/supabase'
+import { apiClient } from './api-client'
 
-export const getLLMs = async () => {
-  const access_token = await getCurrentUserAccessToken()
+/**
+ * LLM Service
+ * Handles all LLM-related API requests
+ */
 
-  const resp = await fetch(import.meta.env.VITE_BASE_API_URL + '/get-llms', {
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${access_token}`,
-      accept: '*/*',
-    },
-  })
+/**
+ * Interface for LLM response
+ */
+export interface LLMResponse {
+  available_models: string[]
+}
 
-  if (!resp.ok) {
-    const errorBody = await resp.text()
-    console.error(`Error fetching agents: ${resp.status} ${resp.statusText}`, errorBody)
-    throw new Error(`Failed to fetch agents: ${resp.statusText}`)
-  }
-
-  const data = await resp.json()
-
-  return data as {
-    available_models: string[]
-  }
+/**
+ * Get all available LLM models
+ * @returns Promise with available models
+ */
+export const getLLMs = async (): Promise<LLMResponse> => {
+  return apiClient.get<LLMResponse>('/get-llms')
 }

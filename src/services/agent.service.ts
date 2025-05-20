@@ -1,153 +1,71 @@
 import { IAgent, IAgentLog, IAgentPayload } from '@/types/agent'
-import { getCurrentUserAccessToken } from '@/utils/supabase'
+import { apiClient } from './api-client'
 
-export const getAgents = async () => {
-  const access_token = await getCurrentUserAccessToken()
+/**
+ * Agent Service
+ * Handles all agent-related API requests
+ */
 
-  const resp = await fetch(import.meta.env.VITE_BASE_API_URL + '/agents', {
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${access_token}`,
-      accept: '*/*',
-    },
-  })
-
-  if (!resp.ok) {
-    const errorBody = await resp.text()
-    console.error(`Error fetching agents: ${resp.status} ${resp.statusText}`, errorBody)
-    throw new Error(`Failed to fetch agents: ${resp.statusText}`)
-  }
-
-  const data: IAgent[] = await resp.json()
-
-  return data
+/**
+ * Get all agents
+ * @returns Promise with array of agents
+ */
+export const getAgents = async (): Promise<IAgent[]> => {
+  return apiClient.get<IAgent[]>('/agents')
 }
 
-export const getAgent = async (agentId: string) => {
-  const access_token = await getCurrentUserAccessToken()
-
-  const resp = await fetch(import.meta.env.VITE_BASE_API_URL + `/agents/${agentId}`, {
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${access_token}`,
-      accept: '*/*',
-    },
-  })
-
-  if (!resp.ok) {
-    const errorBody = await resp.text()
-    console.error(`Error fetching agent: ${resp.status} ${resp.statusText}`, errorBody)
-    throw new Error(`Failed to fetch agent: ${resp.statusText}`)
-  }
-
-  const data: IAgent = await resp.json()
-
-  return data
+/**
+ * Get a specific agent by ID
+ * @param agentId - ID of the agent to retrieve
+ * @returns Promise with agent data
+ */
+export const getAgent = async (agentId: string): Promise<IAgent> => {
+  return apiClient.get<IAgent>(`/agents/${agentId}`)
 }
 
-export const createAgent = async (payload: IAgentPayload) => {
-  const access_token = await getCurrentUserAccessToken()
-
-  const resp = await fetch(import.meta.env.VITE_BASE_API_URL + '/agents', {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${access_token}`,
-      accept: '*/*',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload),
-  })
-
-  if (!resp.ok) {
-    const errorBody = await resp.text()
-    console.error(`Error creating agent: ${resp.status} ${resp.statusText}`, errorBody)
-    throw new Error(`Failed to create agent: ${resp.statusText}`)
-  }
-
-  const data: IAgent = await resp.json()
-
-  return data
+/**
+ * Create a new agent
+ * @param payload - Agent data to create
+ * @returns Promise with the created agent
+ */
+export const createAgent = async (payload: IAgentPayload): Promise<IAgent> => {
+  return apiClient.post<IAgent>('/agents', payload)
 }
 
-export const updateAgent = async (agentId: string, payload: IAgentPayload) => {
-  const access_token = await getCurrentUserAccessToken()
-
-  const resp = await fetch(import.meta.env.VITE_BASE_API_URL + `/agents/${agentId}`, {
-    method: 'PUT',
-    headers: {
-      Authorization: `Bearer ${access_token}`,
-      accept: '*/*',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload),
-  })
-
-  if (!resp.ok) {
-    const errorBody = await resp.text()
-    console.error(`Error updating agent: ${resp.status} ${resp.statusText}`, errorBody)
-    throw new Error(`Failed to update agent: ${resp.statusText}`)
-  }
-
-  const data: IAgent = await resp.json()
-
-  return data
+/**
+ * Update an existing agent
+ * @param agentId - ID of the agent to update
+ * @param payload - Updated agent data
+ * @returns Promise with the updated agent
+ */
+export const updateAgent = async (agentId: string, payload: IAgentPayload): Promise<IAgent> => {
+  return apiClient.put<IAgent>(`/agents/${agentId}`, payload)
 }
 
-export const deleteAgent = async (agentId: string) => {
-  const access_token = await getCurrentUserAccessToken()
-
-  const resp = await fetch(import.meta.env.VITE_BASE_API_URL + `/agents/${agentId}`, {
-    method: 'DELETE',
-    headers: {
-      Authorization: `Bearer ${access_token}`,
-      accept: '*/*',
-    },
-  })
-
-  if (!resp.ok) {
-    const errorBody = await resp.text()
-    console.error(`Error deleting agent: ${resp.status} ${resp.statusText}`, errorBody)
-    throw new Error(`Failed to delete agent: ${resp.statusText}`)
-  }
-
-  return true
+/**
+ * Delete an agent
+ * @param agentId - ID of the agent to delete
+ * @returns Promise with boolean indicating success
+ */
+export const deleteAgent = async (agentId: string): Promise<boolean> => {
+  return apiClient.delete(`/agents/${agentId}`)
 }
 
-export const invokeStream = async (agentId: string, payload: any) => {
-  const access_token = await getCurrentUserAccessToken()
-  const url = new URL(`${import.meta.env.VITE_BASE_API_URL}/agent-invoke/${agentId}/invoke-stream`)
-
-  const headers = {
-    'Content-Type': 'application/json',
-    Accept: 'text/event-stream',
-    Authorization: `Bearer ${access_token}`,
-  }
-
-  return fetch(url, {
-    method: 'POST',
-    headers: headers,
-    body: JSON.stringify(payload),
-  })
+/**
+ * Invoke an agent with streaming response
+ * @param agentId - ID of the agent to invoke
+ * @param payload - Data to send to the agent
+ * @returns Promise with fetch response for streaming
+ */
+export const invokeStream = async (agentId: string, payload: any): Promise<Response> => {
+  return apiClient.stream(`/agent-invoke/${agentId}/invoke-stream`, payload)
 }
 
-export const getAgentLogs = async (agentId: string) => {
-  const access_token = await getCurrentUserAccessToken()
-
-  const resp = await fetch(import.meta.env.VITE_BASE_API_URL + `/agent-logs/${agentId}`, {
-    method: 'GET',
-    headers: {
-      Authorization: `Bearer ${access_token}`,
-      accept: '*/*',
-    },
-  })
-
-  if (!resp.ok) {
-    const errorBody = await resp.text()
-    console.error(`Error fetching agent: ${resp.status} ${resp.statusText}`, errorBody)
-    throw new Error(`Failed to fetch agent: ${resp.statusText}`)
-  }
-
-  const data: IAgentLog = await resp.json()
-
-  return data
+/**
+ * Get logs for a specific agent
+ * @param agentId - ID of the agent to get logs for
+ * @returns Promise with agent logs
+ */
+export const getAgentLogs = async (agentId: string): Promise<IAgentLog> => {
+  return apiClient.get<IAgentLog>(`/agent-logs/${agentId}`)
 }
