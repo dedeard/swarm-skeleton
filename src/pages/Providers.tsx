@@ -1,5 +1,6 @@
 import type { NavigateOptions } from 'react-router-dom'
 
+import { LayoutProvider } from '@/contexts/LayoutContext'
 import { ToastProvider } from '@heroui/react'
 import { HeroUIProvider } from '@heroui/system'
 import { ThemeProvider } from 'next-themes'
@@ -17,8 +18,10 @@ export function Providers() {
   return (
     <ThemeProvider attribute="class">
       <HeroUIProvider navigate={navigate} useHref={useHref}>
-        <ToastProvider placement="top-right" regionProps={{ className: 'z-[99999]' }} />
-        <Outlet />
+        <LayoutProvider>
+          <ToastProvider placement="top-right" regionProps={{ className: 'z-[99999]' }} />
+          <Outlet />
+        </LayoutProvider>
       </HeroUIProvider>
     </ThemeProvider>
   )
