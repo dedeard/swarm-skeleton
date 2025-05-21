@@ -151,8 +151,6 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setStatus('Processing...')
       const userMessage: IChatMessage = { role: 'user', content: message, timestamp: new Date().toISOString() }
 
-      setLocalChats((prevChats) => [...prevChats, userMessage])
-
       const isNewThread = !threads.some((t) => t.thread_id === activeThreadId)
       if (isNewThread) {
         const newThreadPreview: IThreadPreview = {
@@ -165,6 +163,10 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
         setThreads((prevThreads) => [newThreadPreview, ...prevThreads])
       }
+
+      await new Promise((resolve) => setTimeout(resolve, 100))
+
+      setLocalChats((prevChats) => [...prevChats, userMessage])
 
       setStreamMessage('')
       let finalAnswerHasBeenReceived = false
