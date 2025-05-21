@@ -18,11 +18,7 @@ export const Component: React.FC = () => {
       <ChatProvider>
         <Outlet />
 
-        <Layout>
-          <div className="flex h-screen w-full items-center justify-center">
-            <h1 className="text-3xl font-bold">Welcome to the Root Page</h1>
-          </div>
-        </Layout>
+        <Layout></Layout>
       </ChatProvider>
     </>
   )
