@@ -10,8 +10,8 @@ interface ConversationsProps {
 }
 
 const Conversations: React.FC<ConversationsProps> = ({ loading, threads, agent }) => (
-  <div className="flex flex-col py-3">
-    <span className="mb-3 block px-3 text-sm font-semibold text-neutral-600 dark:text-neutral-200">Conversations</span>
+  <div className="flex flex-col gap-2 py-3">
+    <span className="block px-3 text-sm font-semibold text-neutral-600 dark:text-neutral-200">Conversations</span>
     {loading && (
       <div className="flex flex-col items-center justify-center gap-2 rounded border bg-neutral-100 px-3 py-10 text-sm text-neutral-600 dark:border-neutral-800 dark:bg-neutral-900 dark:text-neutral-200">
         <Spinner />

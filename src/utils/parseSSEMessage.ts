@@ -59,7 +59,6 @@ export function parseSSEMessage(sseBlock: string): ParsedSSEMessage {
   let parsedData: any
   const prefix = `{"status": "Agent Execution End", "final_answer": "`
   try {
-    console.log(jsonDataString)
     if (jsonDataString.startsWith(prefix)) {
       parsedData = {
         status: 'Agent Execution End',

@@ -25,7 +25,7 @@ const Layout: React.FC<React.PropsWithChildren> = () => {
             </div>
           </section>
         </PerfectScrollbar>
-        <ChatInterface isLoading={isSendingMessage} onSendMessage={handleSendMessage} />
+        <ChatInterface isLoading={isSendingMessage} showSuggestion={messages.length === 0} onSendMessage={handleSendMessage} />
       </div>
     </div>
   )

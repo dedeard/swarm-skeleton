@@ -2,7 +2,7 @@ import { getAgentLogs, invokeStream } from '@/services/agent.service'
 import { useAgentStore } from '@/store/agent.store'
 import { IAgent, IAgentLog, IChatMessage, IThreadPreview } from '@/types/agent' // Ensure IChatMessage role type supports 'agent'
 import { getMessagesByThreadId, getThreadListPreview } from '@/utils/agent-log-extractor'
-import { parseSSEMessage } from '@/utils/parseSSEMessage' // Assuming this is the correct path
+import { parseSSEMessage } from '@/utils/parseSSEMessage'
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 
@@ -14,11 +14,10 @@ interface ChatContextType {
   activeThreadId: string
   loading: boolean // For agent/log fetching
 
-  // New additions for chat interaction
-  localChats: IChatMessage[] // Main array of messages for display, includes real-time updates
+  localChats: IChatMessage[]
   streamMessage: string
   status: string
-  isSendingMessage: boolean // For message send operation
+  isSendingMessage: boolean
   handleSendMessage: (message: string) => Promise<void>
 }
 
@@ -27,7 +26,6 @@ const ChatContext = createContext<ChatContextType | undefined>(undefined)
 export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const agentStore = useAgentStore()
 
-  // Existing state for agent/thread data
   const [agent, setAgent] = useState<IAgent | null>(null)
   const [agentLog, setAgentLog] = useState<IAgentLog | null>(null)
   const [historicalMessages, setHistoricalMessages] = useState<IChatMessage[]>([])
@@ -36,10 +34,9 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loadingAgent, setLoadingAgent] = useState<boolean>(false)
   const [loadingMessagesOrThread, setLoadingMessagesOrThread] = useState<boolean>(false)
 
-  // New state for chat interaction logic
   const [streamMessage, setStreamMessage] = useState<string>('')
   const [status, setStatus] = useState<string>('')
-  const [isSendingMessage, setIsSendingMessage] = useState<boolean>(false) // Tracks loading for handleSendMessage
+  const [isSendingMessage, setIsSendingMessage] = useState<boolean>(false)
   const [localChats, setLocalChats] = useState<IChatMessage[]>([])
 
   const [searchParams] = useSearchParams()
@@ -65,7 +62,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoadingAgent(true)
       setAgent(null)
       setAgentLog(null)
-      setThreads([])
+      // setThreads([]) // Retain optimistic threads until new log data is confirmed
       setHistoricalMessages([])
       setLocalChats([])
       setActiveThreadId('')
@@ -78,14 +75,14 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setAgent(foundAgent)
           const fetchedLog = await getAgentLogs(currentAgentIdFromUrl)
           setAgentLog(fetchedLog)
-          const newThreads = fetchedLog ? getThreadListPreview(fetchedLog) : []
-          setThreads(newThreads)
+          const newThreadsFromLog = fetchedLog ? getThreadListPreview(fetchedLog) : []
+          setThreads(newThreadsFromLog.reverse()) // This will overwrite optimistic if not yet in log
         } else {
           setAgent(null)
           setAgentLog(null)
           setThreads([])
         }
-      } catch (error) {
+      } catch {
         setAgent(null)
         setAgentLog(null)
         setThreads([])
@@ -125,7 +122,10 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (specifiedThreadExistsInKnownLogs && agentLog) {
         messagesForThread = getMessagesByThreadId(agentLog, currentThreadIdFromUrl) || []
+      } else if (agentLog === null && !specifiedThreadExistsInKnownLogs && threads.some((t) => t.thread_id === currentThreadIdFromUrl)) {
+        messagesForThread = []
       }
+
       setHistoricalMessages(messagesForThread)
       setLocalChats(messagesForThread)
       setLoadingMessagesOrThread(false)
@@ -150,20 +150,28 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsSendingMessage(true)
       setStatus('Processing...')
       const userMessage: IChatMessage = { role: 'user', content: message, timestamp: new Date().toISOString() }
+
       setLocalChats((prevChats) => [...prevChats, userMessage])
+
+      const isNewThread = !threads.some((t) => t.thread_id === activeThreadId)
+      if (isNewThread) {
+        const newThreadPreview: IThreadPreview = {
+          thread_id: activeThreadId,
+          message_count: 1,
+          first_message_timestamp: userMessage.timestamp,
+          last_message_timestamp: userMessage.timestamp,
+          first_message_snippet: userMessage.content.substring(0, 100),
+          last_message_snippet: userMessage.content.substring(0, 100),
+        }
+        setThreads((prevThreads) => [newThreadPreview, ...prevThreads])
+      }
+
       setStreamMessage('')
       let finalAnswerHasBeenReceived = false
 
       const requestPayload = {
-        input: {
-          messages: message,
-          context: 'info',
-        },
-        config: {
-          configurable: {
-            thread_id: activeThreadId,
-          },
-        },
+        input: { messages: message, context: 'info' },
+        config: { configurable: { thread_id: activeThreadId } },
         metadata: {
           model_name: 'anthropic/claude-3.5-sonnet',
           reset_memory: false,
@@ -196,7 +204,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
 
           accumulatedStream += decoder.decode(chunk, { stream: true })
-          const sseEventObject = parseSSEMessage(accumulatedStream) // Renamed for clarity
+          const sseEventObject = parseSSEMessage(accumulatedStream)
           const eventsToProcess = Array.isArray(sseEventObject) ? sseEventObject : sseEventObject ? [sseEventObject] : []
 
           for (const eventData of eventsToProcess) {
@@ -218,7 +226,6 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
               }
             }
           }
-          // Corrected line: Check eventsToProcess.length
           if (eventsToProcess.length > 0 && accumulatedStream.includes('\n\n')) {
             accumulatedStream = accumulatedStream.substring(accumulatedStream.lastIndexOf('\n\n') + 2)
           }
@@ -244,7 +251,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }
     },
-    [agent, activeThreadId, streamMessage],
+    [agent, activeThreadId, streamMessage, threads],
   )
 
   const combinedLoading = loadingAgent || loadingMessagesOrThread

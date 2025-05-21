@@ -9,6 +9,7 @@ interface ChatInterfaceProps {
   onSendMessage?: (message: string) => void
   disabled?: boolean
   isLoading?: boolean
+  showSuggestion?: boolean
   placeholder?: string
   onUploadFile?: () => void
   onVoiceInput?: () => void
@@ -19,6 +20,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   disabled,
   isLoading,
   placeholder = 'Message SWARM',
+  showSuggestion,
   onUploadFile,
   onVoiceInput,
 }) => {
@@ -55,7 +57,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   return (
     <div className="border-t bg-neutral-100 p-3 dark:border-neutral-800 dark:bg-neutral-900">
       <div className="mx-auto flex w-full max-w-2xl flex-col gap-3">
-        {!inputValue.trim().length && (
+        {!inputValue.trim().length && showSuggestion && (
           <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
             {suggestions.map((suggestion, index) => (
               <button
