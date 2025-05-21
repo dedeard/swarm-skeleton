@@ -5,6 +5,7 @@ import { getMessagesByThreadId, getThreadListPreview } from '@/utils/agent-log-e
 import { parseSSEMessage } from '@/utils/parseSSEMessage'
 import React, { createContext, useCallback, useContext, useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
+import { v4 as uuidv4 } from 'uuid'
 
 interface ChatContextType {
   agent: IAgent | null
@@ -131,7 +132,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoadingMessagesOrThread(false)
     } else {
       setLoadingMessagesOrThread(true)
-      const newClientGeneratedUUID = crypto.randomUUID()
+      const newClientGeneratedUUID = uuidv4()
       navigate(`?agent=${currentAgentIdFromUrl}&thread=${newClientGeneratedUUID}`, { replace: true })
     }
   }, [loadingAgent, currentAgentIdFromUrl, currentThreadIdFromUrl, threads, agentLog, navigate, activeThreadId])

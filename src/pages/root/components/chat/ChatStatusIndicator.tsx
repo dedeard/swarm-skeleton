@@ -6,12 +6,12 @@ interface ChatStatusIndicatorProps {
   status: string
 }
 
-const ChatStatusIndicator: React.FC<ChatStatusIndicatorProps> = ({ status }) => {
-  if (status === 'Response complete.') return null
+const ChatStatusIndicator: React.FC<ChatStatusIndicatorProps> = ({ loading, status }) => {
+  if (!loading && !status) return null
 
   return (
     <div className="mt-2 flex h-6 items-center space-x-2">
-      <Spinner size="sm" />
+      {loading && <Spinner size="sm" />}
       {status && <span className="text-sm text-gray-600 dark:text-gray-400">{status}</span>}
     </div>
   )

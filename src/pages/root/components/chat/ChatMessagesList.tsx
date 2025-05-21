@@ -1,26 +1,25 @@
-import { IChatMessage } from '@/types/agent'
+import { useChatContext } from '@/contexts/ChatContext'
 import React from 'react'
 import ChatMessageItem from './ChatMessageItem'
 import ChatStatusIndicator from './ChatStatusIndicator'
 import StreamingMessageDisplay from './StreamingMessageDisplay'
 
 interface ChatMessagesListProps {
-  chats: IChatMessage[]
-  streamMessage?: string
-  loading?: boolean
-  status?: string
   messagesEndRef?: React.RefObject<HTMLDivElement>
 }
 
-const ChatMessagesList: React.FC<ChatMessagesListProps> = ({ chats, streamMessage, loading, status, messagesEndRef }) => {
+const ChatMessagesList: React.FC<ChatMessagesListProps> = ({ messagesEndRef }) => {
+  const { localChats: chats, isSendingMessage, status, streamMessage } = useChatContext()
   return (
-    <div className="mx-auto w-full max-w-3xl py-4">
-      {chats.map((chat, index) => (
-        <ChatMessageItem key={`${chat.timestamp}-${index}-${chat.role}`} chat={chat} />
-      ))}
-      <ChatStatusIndicator loading={!!loading} status={status || ''} />
-      <StreamingMessageDisplay streamMessage={streamMessage || ''} />
-      <div ref={messagesEndRef} />
+    <div className="w-full p-3">
+      <div className="mx-auto w-full max-w-2xl">
+        {chats.map((chat, index) => (
+          <ChatMessageItem key={`${chat.timestamp}-${index}-${chat.role}`} chat={chat} />
+        ))}
+        <ChatStatusIndicator loading={isSendingMessage} status={status} />
+        <StreamingMessageDisplay streamMessage={streamMessage} />
+        <div ref={messagesEndRef} />
+      </div>
     </div>
   )
 }

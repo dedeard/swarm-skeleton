@@ -10,7 +10,7 @@ import MainSidebar from './sidebar/MainSidebar'
 const Layout: React.FC<React.PropsWithChildren> = () => {
   const { sidebarOpen } = useLayoutContext()
 
-  const { localChats: messages, isSendingMessage, handleSendMessage, streamMessage, status } = useChatContext()
+  const { localChats: messages, isSendingMessage, handleSendMessage } = useChatContext()
 
   return (
     <div className="flex h-screen w-screen overflow-hidden text-neutral-700 dark:text-neutral-200">
@@ -20,9 +20,7 @@ const Layout: React.FC<React.PropsWithChildren> = () => {
         <Navbar />
         <PerfectScrollbar className="h-full flex-1 overflow-hidden">
           <section className="flex-1">
-            <div className="container">
-              <ChatMessagesList chats={messages} streamMessage={streamMessage} status={status} />
-            </div>
+            <ChatMessagesList />
           </section>
         </PerfectScrollbar>
         <ChatInterface isLoading={isSendingMessage} showSuggestion={messages.length === 0} onSendMessage={handleSendMessage} />
