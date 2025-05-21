@@ -7,7 +7,7 @@ import type { RouteObject } from 'react-router-dom'
 const routes: RouteObject[] = [
   {
     path: '/',
-    lazy: () => import('@/pages/home/page'),
+    lazy: () => import('@/pages/root/page'),
     children: [
       // Settings routes
       {

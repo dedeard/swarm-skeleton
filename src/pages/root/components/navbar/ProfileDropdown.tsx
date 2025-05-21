@@ -37,7 +37,7 @@ const ProfileDropdown: React.FC = () => {
   return (
     <Dropdown placement="bottom-end">
       <DropdownTrigger>
-        <Button className="flex !scale-100 items-center gap-2 px-2" variant="light">
+        <Button className="flex min-w-10 !scale-100 items-center gap-2 px-1" variant="light">
           <Avatar src={avatar} alt={user?.user_metadata?.full_name} className="h-7 w-7 border-2 border-primary-600" />
           <div className="hidden flex-col items-start text-left leading-none md:flex">
             <span className="text-xs font-medium leading-none">

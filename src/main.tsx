@@ -1,9 +1,12 @@
 import ReactDOM from 'react-dom/client'
 import { RouterProvider } from 'react-router-dom'
 
-import '@/styles/globals.css'
 import Boot from './boot'
 import router from './router'
+
+import '@/styles/perfect-scrollbar.css'
+
+import '@/styles/globals.css'
 
 /**
  * Application Entry Point

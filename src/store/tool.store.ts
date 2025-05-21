@@ -16,7 +16,7 @@ interface ToolState {
   removeTool: (toolId: string) => Promise<void>
 }
 
-export const useToolStore = create<ToolState>()((set) => ({
+export const useToolStore = create<ToolState>()((set, get) => ({
   // Initial state
   tools: [],
   toolsLoaded: false,
@@ -24,6 +24,7 @@ export const useToolStore = create<ToolState>()((set) => ({
   // Actions
   fetchTools: async () => {
     try {
+      if (get().toolsLoaded) return
       const tools = await getTools()
       set({ tools, toolsLoaded: true })
     } catch (error) {
