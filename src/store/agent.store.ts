@@ -16,13 +16,14 @@ interface AgentState {
   removeAgent: (agentId: string) => Promise<void>
 }
 
-export const useAgentStore = create<AgentState>()((set) => ({
+export const useAgentStore = create<AgentState>()((set, get) => ({
   // Initial state
   agents: [],
   agentsLoaded: false,
 
   // Actions
   fetchAgents: async () => {
+    if (get().agentsLoaded) return get().agents
     const agents = await getAgents()
     set({ agents, agentsLoaded: true })
     return agents

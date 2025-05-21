@@ -13,7 +13,7 @@ export const API = {
     TOOLS: '/tools',
     LLMS: '/get-llms',
   },
-  TIMEOUT: 30000, // 30 seconds
+  TIMEOUT: 60000, // 60 seconds
 }
 
 // Authentication Configuration
