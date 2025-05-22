@@ -1,32 +1,16 @@
-import { Loader2Icon, MicIcon, SendIcon, UploadIcon } from 'lucide-react'
+import { useChatContext } from '@/contexts/ChatContext'
+import { Loader2Icon, SendIcon } from 'lucide-react'
 import React, { useState } from 'react'
-import ActionButton from './ActionButton'
 import ChatTextArea from './ChatTextArea'
 import SubmitButton from './SubmitButton'
 import { suggestions } from './suggestions'
 
-interface ChatInterfaceProps {
-  onSendMessage?: (message: string) => void
-  disabled?: boolean
-  isLoading?: boolean
-  showSuggestion?: boolean
-  placeholder?: string
-  onUploadFile?: () => void
-  onVoiceInput?: () => void
-}
+const ChatInterface: React.FC = () => {
+  const { agent, localChats, isSendingMessage, handleSendMessage } = useChatContext()
 
-const ChatInterface: React.FC<ChatInterfaceProps> = ({
-  onSendMessage,
-  disabled,
-  isLoading,
-  placeholder = 'Message SWARM',
-  showSuggestion,
-  onUploadFile,
-  onVoiceInput,
-}) => {
   const [inputValue, setInputValue] = useState('')
 
-  const isEffectivelyDisabled = disabled || isLoading
+  const isEffectivelyDisabled = !agent || isSendingMessage
   const isSendDisabled = isEffectivelyDisabled || !inputValue.trim()
 
   const handleInputChange = (event: React.ChangeEvent<HTMLTextAreaElement>) => {
@@ -35,8 +19,8 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
   const handleSend = () => {
     const trimmedValue = inputValue.trim()
-    if (!isSendDisabled && onSendMessage && trimmedValue) {
-      onSendMessage(trimmedValue)
+    if (!isSendDisabled && trimmedValue) {
+      handleSendMessage(trimmedValue)
       setInputValue('')
     }
   }
@@ -57,7 +41,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
   return (
     <div className="border-t bg-neutral-100 p-3 dark:border-neutral-800 dark:bg-neutral-900">
       <div className="mx-auto flex w-full max-w-2xl flex-col gap-3">
-        {!inputValue.trim().length && showSuggestion && (
+        {!inputValue.trim().length && !localChats.length && (
           <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
             {suggestions.map((suggestion, index) => (
               <button
@@ -72,7 +56,7 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
           </div>
         )}
         <div className="flex items-end space-x-2 rounded-2xl border-2 border-primary-600 bg-transparent p-2 shadow-lg">
-          {onUploadFile && (
+          {/* {onUploadFile && (
             <ActionButton
               ariaLabel="Upload file"
               icon={<UploadIcon size={22} strokeWidth={2} />}
@@ -81,16 +65,16 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
               iconColorClass="text-primary-500"
               hoverIconColorClass="hover:text-primary-600"
             />
-          )}
+          )} */}
           <ChatTextArea
             value={inputValue}
             onChange={handleInputChange}
             onKeyDown={handleKeyDown}
-            placeholder={placeholder}
+            placeholder="Message SWARM"
             disabled={isEffectivelyDisabled}
-            isLoading={isLoading}
+            isLoading={isSendingMessage}
           />
-          {onVoiceInput && (
+          {/* {onVoiceInput && (
             <ActionButton
               ariaLabel="Voice input"
               icon={<MicIcon size={22} strokeWidth={2} />}
@@ -99,11 +83,11 @@ const ChatInterface: React.FC<ChatInterfaceProps> = ({
               iconColorClass="text-primary-500"
               hoverIconColorClass="hover:text-primary-600"
             />
-          )}
+          )} */}
           <SubmitButton
             onClick={handleSend}
             disabled={isSendDisabled}
-            isLoading={isLoading}
+            isLoading={isSendingMessage}
             LoadingIcon={Loader2Icon}
             SendIcon={SendIcon}
           />

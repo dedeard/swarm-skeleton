@@ -69,3 +69,7 @@ export const invokeStream = async (agentId: string, payload: any): Promise<Respo
 export const getAgentLogs = async (agentId: string): Promise<IAgentLog> => {
   return apiClient.get<IAgentLog>(`/agent-logs/${agentId}`)
 }
+
+export const invokeAutofillAgentStyle = async (payload: any): Promise<Response> => {
+  return apiClient.stream(`/agent-field-autofill/invoke`, payload)
+}

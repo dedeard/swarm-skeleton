@@ -45,3 +45,6 @@ export const ENV = {
   IS_DEV: import.meta.env.DEV,
   IS_PROD: import.meta.env.PROD,
 }
+
+// Default LLM
+export const DEFAULT_LLM = import.meta.env.VITE_DEFAULT_LLM || 'deepseek/deepseek-prover-v2:free'

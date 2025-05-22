@@ -1,4 +1,3 @@
-import { useChatContext } from '@/contexts/ChatContext'
 import { useLayoutContext } from '@/contexts/LayoutContext'
 import React from 'react'
 import PerfectScrollbar from 'react-perfect-scrollbar'
@@ -9,8 +8,6 @@ import MainSidebar from './sidebar/MainSidebar'
 
 const Layout: React.FC<React.PropsWithChildren> = () => {
   const { sidebarOpen } = useLayoutContext()
-
-  const { localChats: messages, isSendingMessage, handleSendMessage } = useChatContext()
 
   return (
     <div className="flex h-screen w-screen overflow-hidden text-neutral-700 dark:text-neutral-200">
@@ -23,7 +20,7 @@ const Layout: React.FC<React.PropsWithChildren> = () => {
             <ChatMessagesList />
           </section>
         </PerfectScrollbar>
-        <ChatInterface isLoading={isSendingMessage} showSuggestion={messages.length === 0} onSendMessage={handleSendMessage} />
+        <ChatInterface />
       </div>
     </div>
   )

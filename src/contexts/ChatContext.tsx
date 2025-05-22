@@ -1,3 +1,4 @@
+import { DEFAULT_LLM } from '@/config/constants'
 import { getAgentLogs, invokeStream } from '@/services/agent.service'
 import { useAgentStore } from '@/store/agent.store'
 import { IAgent, IAgentLog, IChatMessage, IThreadPreview } from '@/types/agent' // Ensure IChatMessage role type supports 'agent'
@@ -176,7 +177,7 @@ export const ChatProvider: React.FC<{ children: React.ReactNode }> = ({ children
         input: { messages: message, context: 'info' },
         config: { configurable: { thread_id: activeThreadId } },
         metadata: {
-          model_name: 'anthropic/claude-3.5-sonnet',
+          model_name: DEFAULT_LLM,
           reset_memory: false,
           load_from_json: true,
           agent_style: agent.agent_style || 'default',
