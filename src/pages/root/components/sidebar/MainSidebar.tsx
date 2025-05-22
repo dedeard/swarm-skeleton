@@ -20,7 +20,7 @@ const MainSidebar: React.FC = () => {
         <SidebarHeader agent={agent} toggleSidebar={toggleSidebar} />
         <PerfectScrollbar className="h-[calc(100vh-4rem)] p-3">
           <div className="flex flex-col gap-3">
-            <SidebarLinks agent={agent} />
+            <SidebarLinks />
             {!agentId && <NoAgentSelected />}
             {!!agentId && <Conversations loading={loading} threads={threads} agent={agent} />}
           </div>

@@ -54,6 +54,12 @@ const routes: RouteObject[] = [
           },
         ],
       },
+
+      // Tools routes
+      {
+        path: '/tools',
+        lazy: () => import('@/pages/root/tools/page'),
+      },
     ],
   },
 ]

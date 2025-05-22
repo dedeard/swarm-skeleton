@@ -47,4 +47,4 @@ export const ENV = {
 }
 
 // Default LLM
-export const DEFAULT_LLM = import.meta.env.VITE_DEFAULT_LLM || 'deepseek/deepseek-prover-v2:free'
+export const DEFAULT_LLM = import.meta.env.VITE_DEFAULT_LLM || 'gpt-3.5-turbo'

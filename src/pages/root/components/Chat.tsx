@@ -1,9 +1,9 @@
 import { useLayoutContext } from '@/contexts/LayoutContext'
+import Navbar from '@/pages/root/components/Navbar'
 import React from 'react'
 import PerfectScrollbar from 'react-perfect-scrollbar'
 import ChatInterface from './chat-interface/ChatInterface'
 import ChatMessagesList from './chat/ChatMessagesList'
-import Navbar from './navbar/Navbar'
 import MainSidebar from './sidebar/MainSidebar'
 
 const Layout: React.FC<React.PropsWithChildren> = () => {

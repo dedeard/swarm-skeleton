@@ -1,3 +1,4 @@
+import ProfileDropdown from '@/components/layouts/ProfileDropdown'
 import ThemeToggle from '@/components/layouts/ThemeToggle'
 import SwarmTextGradient from '@/components/ui/SwarmTextGradient'
 import { useLayoutContext } from '@/contexts/LayoutContext'
@@ -6,7 +7,6 @@ import { Button } from '@heroui/button'
 import { PanelLeftOpenIcon, PenBoxIcon, SettingsIcon } from 'lucide-react'
 import React from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import ProfileDropdown from './ProfileDropdown'
 
 const Navbar: React.FC = () => {
   const { sidebarOpen, toggleSidebar } = useLayoutContext()
@@ -31,6 +31,7 @@ const Navbar: React.FC = () => {
           <Button as={Link} to={url} variant="flat" startContent={<SettingsIcon size={18} />} color="success" className="hidden md:flex">
             Agents
           </Button>
+
           <Link to="/" className="hidden px-3 text-xl font-bold text-gray-800 dark:text-white md:flex">
             <SwarmTextGradient>SWARM</SwarmTextGradient>
           </Link>

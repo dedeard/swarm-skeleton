@@ -1,21 +1,16 @@
+import useDynamicUrl from '@/hooks/use-dynamic-url'
 import { Settings2Icon, SettingsIcon } from 'lucide-react'
 import React from 'react'
 import { Link } from 'react-router-dom'
 
-interface SidebarLinksProps {
-  agent?: any
-}
+const SidebarLinks: React.FC = () => {
+  const agenturl = useDynamicUrl('/agents')
+  const toolurl = useDynamicUrl('/tools')
 
-const SidebarLinks: React.FC<SidebarLinksProps> = ({ agent }) => {
-  let url = '/agents'
-
-  if (agent) {
-    url = `/agents?agent=${agent?.agent_id}`
-  }
   return (
     <div className="flex flex-col gap-1">
       <Link
-        to={url}
+        to={agenturl}
         className="flex items-center gap-2 rounded px-2 py-1 text-sm text-neutral-600 hover:bg-neutral-200 dark:text-neutral-200 dark:hover:bg-neutral-900"
       >
         <span className="flex h-7 w-7 items-center justify-center">
@@ -24,7 +19,7 @@ const SidebarLinks: React.FC<SidebarLinksProps> = ({ agent }) => {
         <span className="block">Agent Settings</span>
       </Link>
       <Link
-        to={`/?agent=${agent?.agent_id}`}
+        to={toolurl}
         className="flex items-center gap-2 rounded px-2 py-1 text-sm text-neutral-600 hover:bg-neutral-200 dark:text-neutral-200 dark:hover:bg-neutral-900"
       >
         <span className="flex h-7 w-7 items-center justify-center">
