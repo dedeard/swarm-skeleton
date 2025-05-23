@@ -1,44 +1,44 @@
-import AgentForm from '@/components/features/agents/AgentForm'
-import { useAgentStore } from '@/store/agent.store'
-import { IAgent } from '@/types/agent'
+import { useToolStore } from '@/store/tool.store'
+import { ITool } from '@/types/tool'
 import React from 'react'
 import { LoaderFunction, useLoaderData } from 'react-router-dom'
+import ToolForm from '../components/ToolForm'
 
 export const Component: React.FC = () => {
   // @ts-expect-error
-  const agent = useLoaderData().agent as IAgent
-  return <AgentForm agent={agent} />
+  const tool = useLoaderData().tool as ITool
+  return <ToolForm tool={tool} />
 }
 
 export const loader: LoaderFunction = async ({ params }) => {
-  // Ensure agentId exists
-  const agentId = params.agentId
-  if (!agentId) {
-    throw new Response('Agent ID is required', { status: 400 })
+  // Ensure toolId exists
+  const toolId = params.toolId
+  if (!toolId) {
+    throw new Response('Tool ID is required', { status: 400 })
   }
 
   try {
-    // Get agent store state
-    const agentStore = useAgentStore.getState()
+    // Get tool store state
+    const toolStore = useToolStore.getState()
 
-    // Try to find agent in local cache first
-    let agent = agentStore.agents.find((agent) => agent.agent_id === agentId)
+    // Try to find tool in local cache first
+    let tool = toolStore.tools.find((tool) => tool.tool_id === toolId)
 
     // If not in cache, fetch from API
-    if (!agent) {
-      agent = await agentStore.fetchAgentById(agentId)
+    if (!tool) {
+      tool = await toolStore.fetchToolById(toolId)
 
-      // If still no agent found after API call
-      if (!agent) {
-        throw new Response(`Agent with ID ${agentId} not found`, { status: 404 })
+      // If still no tool found after API call
+      if (!tool) {
+        throw new Response(`Tool with ID ${toolId} not found`, { status: 404 })
       }
     }
 
-    return { agent, success: true }
+    return { tool, success: true }
   } catch (error) {
-    console.error(`Failed to load agent ${agentId}:`, error)
+    console.error(`Failed to load tool ${toolId}:`, error)
 
     // throw 404
-    throw new Response(`Agent with ID ${agentId} not found`, { status: 404 })
+    throw new Response(`Tool with ID ${toolId} not found`, { status: 404 })
   }
 }

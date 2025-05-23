@@ -12,17 +12,10 @@ const ToolItem: React.FC<{ tool: ITool }> = ({ tool }) => {
         <div className="truncate text-xs opacity-75">{tool.description}</div>
       </div>
       <div className="mt-3 flex gap-3">
-        <Button as={Link} to={`/?agent=${tool.tool_id}`} variant="flat" size="sm" color="success">
+        <Button as={Link} to={`/tools/${tool.tool_id}/edit`} variant="flat" size="sm" color="success">
           Edit
         </Button>
-        <Button
-          as={Link}
-          to={`/agents/${tool.tool_id}/edit`}
-          variant="light"
-          size="sm"
-          color="danger"
-          startContent={<Trash2Icon size={10} />}
-        >
+        <Button variant="light" size="sm" color="danger" startContent={<Trash2Icon size={10} />}>
           Delete
         </Button>
       </div>

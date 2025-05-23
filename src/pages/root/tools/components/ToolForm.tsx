@@ -1,332 +1,253 @@
-import { invokeAutofillAgentStyle } from '@/services/agent.service'
-import { useAgentStore } from '@/store/agent.store'
-import { useToolStore } from '@/store/tool.store'
-import { IAgent, IAgentPayload } from '@/types/agent'
-import { addToast, Button, Input, Select, SelectItem, Textarea } from '@heroui/react'
-import { Switch } from '@heroui/switch'
+import { Button, Input, Select, SelectItem, Textarea, addToast } from '@heroui/react'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { HomeIcon, SparklesIcon, XIcon } from 'lucide-react'
-import React, { useEffect, useRef, useState } from 'react' // Added useRef for textarea
-import { useForm } from 'react-hook-form'
+import { PlusCircleIcon, WrenchIcon, XIcon } from 'lucide-react'
+import React, { useEffect, useState } from 'react'
+import { Controller, useFieldArray, useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
-import * as yup from 'yup'
 
-const schema = yup.object({
-  agent_name: yup.string().required('Agent name is required'),
-  description: yup.string().required('Description is required'),
-  agent_style: yup.string().optional(),
-  on_status: yup.boolean(),
-  tools: yup.array().of(yup.string()).optional(),
-})
+import { useToolStore } from '@/store/tool.store'
+import { IToolPayload, IToolVersion } from '@/types/tool' // ITool also used in ToolFormProps
 
-type FormValues = yup.InferType<typeof schema>
+import { methodOptions, statusOptions } from './toolForm.constants'
+import { toolSchema } from './toolForm.schemas'
+import { ToolFormProps, ToolFormValues } from './toolForm.types'
+import VersionSubForm from './VersionSubForm'
 
-interface AgentFormProps {
-  agent?: IAgent
-}
+const ToolForm: React.FC<ToolFormProps> = ({ tool }) => {
+  const { addTool, editTool } = useToolStore()
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-const AgentForm: React.FC<AgentFormProps> = ({ agent }) => {
-  const { tools: allTools } = useToolStore()
-  const [loading, setLoading] = useState(false)
-  const [isAutofillingStyle, setIsAutofillingStyle] = useState(false)
-  const { addAgent, editAgent } = useAgentStore()
   const navigate = useNavigate()
-  const isEditMode = !!agent
-  const agentStyleTextareaRef = useRef<HTMLTextAreaElement>(null) // Ref for scrolling
+  const isEditMode = !!tool
 
   const {
+    control,
     handleSubmit,
-    setValue,
-    watch,
     reset,
-    getValues,
+    watch,
+    setValue,
     formState: { errors },
-  } = useForm({
-    resolver: yupResolver(schema),
-    defaultValues: {
-      agent_name: '',
-      description: '',
-      agent_style: '',
-      on_status: true,
-      tools: [],
-    },
+  } = useForm<ToolFormValues>({
+    resolver: yupResolver(toolSchema),
+  })
+
+  const {
+    fields: versionFields,
+    append: appendVersion,
+    remove: removeVersion,
+  } = useFieldArray({
+    control,
+    name: 'versions',
   })
 
   useEffect(() => {
-    if (agent) {
-      reset({
-        agent_name: agent.agent_name,
-        description: agent.description,
-        agent_style: agent.agent_style || 'The agent will reply in a warm and friendly manner, using English.',
-        on_status: agent.on_status,
-        tools: agent.tools,
-      })
-    } else {
-      setValue('agent_style', 'The agent will reply in a warm and friendly manner, using English.')
-    }
-  }, [agent, reset, setValue])
-
-  const toolsValue = watch('tools')
-  const enabled = watch('on_status')
-  const agentNameValue = watch('agent_name')
-  const descriptionValue = watch('description')
-  // Watch currentAgentStyle directly for use in handleAutofillAgentStyle
-  const currentAgentStyleValue = watch('agent_style')
-
-  const onSubmit = async (data: FormValues) => {
-    if (!data.agent_style) {
-      data.agent_style = 'The agent will reply in a warm and friendly manner, using English.'
-    }
-    setLoading(true)
-    try {
-      if (isEditMode && agent) {
-        await editAgent(agent.agent_id, data as IAgentPayload)
-        addToast({ title: 'Agent updated successfully' })
-      } else {
-        await addAgent(data as IAgentPayload)
-        addToast({ title: 'Agent created successfully' })
+    if (tool) {
+      const toolDataForForm: ToolFormValues = {
+        name: tool.name,
+        description: tool.description,
+        on_status: tool.on_status as ToolFormValues['on_status'],
+        versions: tool.versions.map((v) => ({
+          version: v.version,
+          released: {
+            env: v.released.env ? Object.entries(v.released.env).map(([key, value]) => ({ key, value })) : [],
+            args: v.released.args,
+            port: v.released.port,
+            method: v.released.method as ToolFormValues['versions'][0]['released']['method'],
+            required_env: v.released.required_env || [],
+          },
+        })),
       }
-      navigate('/agents')
+      reset(toolDataForForm)
+    } else {
+      // Reset to initial default values if not in edit mode or tool is removed
+      reset({
+        name: '',
+        description: '',
+        versions: [
+          {
+            version: '1.0.0',
+            released: {
+              env: [],
+              args: '',
+              port: '',
+              method: 'http',
+              required_env: [],
+            },
+          },
+        ],
+        on_status: 'Development',
+      })
+    }
+  }, [tool, reset])
+
+  const onSubmit = async (data: ToolFormValues) => {
+    setIsSubmitting(true)
+    const payloadVersions: IToolVersion[] = data.versions.map((v) => ({
+      version: v.version,
+      released: {
+        env: (v.released.env || []).reduce(
+          (acc, curr) => {
+            if (curr.key) acc[curr.key] = curr.value
+            return acc
+          },
+          {} as Record<string, string>,
+        ),
+        args: v.released.args,
+        port: v.released.port,
+        method: v.released.method,
+        required_env: v.released.required_env || [],
+      },
+    }))
+
+    const currentToolId = isEditMode && tool ? tool.tool_id : crypto.randomUUID()
+
+    const payload: IToolPayload = {
+      tool_id: currentToolId,
+      name: data.name,
+      description: data.description,
+      on_status: data.on_status,
+      versions: payloadVersions,
+    }
+
+    try {
+      if (isEditMode && tool) {
+        await editTool(tool.tool_id, payload)
+        addToast({ title: 'Tool updated successfully' })
+      } else {
+        await addTool(payload)
+        addToast({ title: 'Tool created successfully' })
+      }
+      navigate('/tools')
     } catch (e: any) {
       addToast({ color: 'danger', title: e.message || 'An unknown error occurred' })
-      setLoading(false)
-    }
-  }
-
-  const handleAutofillAgentStyle = async () => {
-    const currentAgentName = getValues('agent_name')
-    const currentDescription = getValues('description')
-    // Use the watched value as it reflects the UI; getValues might not be updated if user is typing rapidly
-    const existingAgentStyle = currentAgentStyleValue || ''
-
-    if (!currentAgentName) {
-      addToast({ color: 'warning', title: 'Please enter an agent name first' })
-      return
-    }
-
-    setIsAutofillingStyle(true)
-    try {
-      const payload = {
-        field_name: 'agent_style',
-        json_field: {
-          agent_name: currentAgentName,
-          description: currentDescription,
-        },
-        existing_field_value: existingAgentStyle,
-      }
-
-      const fetchResponse: Response = await invokeAutofillAgentStyle(payload)
-
-      if (!fetchResponse.ok) {
-        let errorDetails = `API error: ${fetchResponse.status} ${fetchResponse.statusText}`
-        try {
-          const errorData = await fetchResponse.json()
-          errorDetails += ` - ${errorData.detail || errorData.message || JSON.stringify(errorData)}`
-        } catch (e) {
-          try {
-            const textError = await fetchResponse.text()
-            errorDetails += ` - ${textError}`
-          } catch (textE) {
-            errorDetails += ' (Could not parse error response body)'
-          }
-        }
-        throw new Error(errorDetails)
-      }
-
-      const responseData = await fetchResponse.json()
-
-      if (responseData && responseData.autofilled_value) {
-        const newText = responseData.autofilled_value
-        let displayedText = existingAgentStyle
-
-        // Logic from your provided version: Clears if both old and new text exist.
-        // This means it replaces the old text if new text is generated.
-        if (displayedText.length > 0 && newText.length > 0) {
-          displayedText = ''
-        }
-
-        // If displayedText is now empty and newText starts with a space, trim it.
-        // Or, ensure newText doesn't start with a space if displayedText was cleared.
-        let textToStream = newText
-        if (displayedText === '' && textToStream.startsWith(' ')) {
-          textToStream = textToStream.trimStart()
-        }
-
-        // Initial set if displayedText was cleared
-        if (displayedText === '') {
-          setValue('agent_style', '', { shouldDirty: true })
-        }
-
-        for (let i = 0; i < textToStream.length; i++) {
-          displayedText += textToStream[i]
-          setValue('agent_style', displayedText + '▌', { shouldDirty: true })
-          if (agentStyleTextareaRef.current) {
-            agentStyleTextareaRef.current.scrollTop = agentStyleTextareaRef.current.scrollHeight
-          }
-          await new Promise((resolve) => setTimeout(resolve, Math.floor(Math.random() * 25) + 10))
-        }
-        setValue('agent_style', displayedText, { shouldDirty: true })
-        addToast({ title: 'Agent style autofilled successfully' })
-      } else {
-        addToast({ color: 'warning', title: 'Failed to autofill agent style: No value received' })
-      }
-    } catch (error: any) {
-      console.error('Autofill error:', error)
-      addToast({ color: 'danger', title: `Error autofilling agent style: ${error.message || 'Unknown error'}` })
     } finally {
-      setIsAutofillingStyle(false)
+      setIsSubmitting(false)
     }
   }
 
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
-      className="absolute left-0 z-10 flex h-screen max-h-screen w-full flex-1 flex-col bg-white dark:bg-neutral-950 lg:static lg:w-[calc(100vw-400px)] lg:max-w-3xl"
+      className="absolute left-0 z-10 flex h-screen max-h-screen w-full flex-1 flex-col bg-white dark:bg-neutral-950 lg:static lg:w-[calc(100vw-400px)] lg:max-w-4xl"
     >
-      <div className="flex justify-between px-3 py-4">
+      <div className="flex justify-between border-b px-4 py-3 dark:border-neutral-800">
         <div>
-          <span className="block text-lg">{isEditMode ? 'Edit Agent' : 'Create Agent'}</span>
+          <span className="block text-lg font-semibold">{isEditMode ? 'Edit Tool' : 'Create New Tool'}</span>
           <span className="block text-xs opacity-75">
-            {isEditMode ? 'Update the properties for your backend agent.' : 'Define the properties for your new backend agent.'}
+            {isEditMode ? `Updating tool: ${tool?.name}` : 'Define the properties for your new tool.'}
           </span>
         </div>
-        <Button as={Link} isIconOnly size="sm" to="/agents" variant="light" radius="full">
+        <Button as={Link} isIconOnly size="sm" to="/tools" variant="light" radius="full">
           <XIcon size={20} />
         </Button>
       </div>
 
-      <div className="grid h-[calc(100%-76px)] w-full grid-cols-1 gap-3 overflow-y-auto px-4">
-        <div className="flex flex-col gap-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded bg-primary-500/10 text-primary-500">
-                <HomeIcon size={18} />
-              </div>
-              <div>
-                <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
-                  {isEditMode ? agent?.agent_name || 'Edit Agent' : 'New Agent'}
-                </h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400">Agent summary will be automatically generated after saving</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Switch isSelected={enabled} onValueChange={(value) => setValue('on_status', value)} color="success" className="ml-2" />
-                <span className={`text-sm ${enabled ? 'text-primary-500' : 'text-gray-500 dark:text-gray-400'}`}>
-                  {enabled ? 'Enabled' : 'Disabled'}
-                </span>
-              </div>
-            </div>
+      <div className="flex-grow space-y-6 overflow-y-auto p-6">
+        <div className="flex items-center gap-3 rounded-lg bg-neutral-50 p-4 dark:bg-neutral-900">
+          <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary-500/10 text-primary-500">
+            <WrenchIcon size={20} />
           </div>
+          <div>
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">
+              {isEditMode ? tool?.name || 'Edit Tool' : 'New Tool Configuration'}
+            </h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Provide the details for the tool and its versions.</p>
+          </div>
+        </div>
 
-          <Input
-            label="Agent Name"
-            placeholder="e.g., Customer Support Bot"
-            value={agentNameValue}
-            onChange={(e) => setValue('agent_name', e.target.value, { shouldValidate: true })}
-            isInvalid={!!errors.agent_name}
-            errorMessage={errors.agent_name?.message}
-            variant="bordered"
-            className="w-full"
-          />
-
-          <Textarea
-            label="Description"
-            placeholder="Describe what this agent does"
-            minRows={4}
-            maxRows={8}
-            value={descriptionValue}
-            onChange={(e) => setValue('description', e.target.value, { shouldValidate: true })}
-            isInvalid={!!errors.description}
-            errorMessage={errors.description?.message}
-            variant="bordered"
-            className="w-full"
-          />
-
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center justify-between">
-              <label htmlFor="agent_style_textarea" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Agent Style / Instructions
-              </label>
-              <Button
-                type="button"
-                size="sm"
-                variant="light"
-                onClick={handleAutofillAgentStyle}
-                isLoading={isAutofillingStyle}
-                isDisabled={!agentNameValue || isAutofillingStyle}
-                className="text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300"
-              >
-                <SparklesIcon size={16} className="mr-1" />
-                Autofill Style
-              </Button>
-            </div>
-            <Textarea
-              id="agent_style_textarea" // ID for scrolling ref
-              ref={agentStyleTextareaRef} // Attach ref
-              placeholder="e.g., conversational, or provide specific instructions. Click Autofill to generate."
-              minRows={4}
-              maxRows={8}
-              value={currentAgentStyleValue} // Use watched value
-              onChange={(e) => setValue('agent_style', e.target.value, { shouldDirty: true })}
-              isInvalid={!!errors.agent_style}
-              errorMessage={errors.agent_style?.message}
+        <Input
+          label="Tool Name"
+          placeholder="e.g., Brave Search"
+          isInvalid={!!errors.name}
+          errorMessage={errors.name?.message}
+          variant="bordered"
+          value={watch('name')}
+          onChange={(e) => setValue('name', e.target.value)}
+        />
+        <Textarea
+          label="Description"
+          placeholder="Describe what this tool does"
+          minRows={3}
+          value={watch('description')}
+          onChange={(e) => setValue('description', e.target.value)}
+          isInvalid={!!errors.description}
+          errorMessage={errors.description?.message}
+          variant="bordered"
+        />
+        <Controller
+          name="on_status"
+          control={control}
+          render={({ field }) => (
+            <Select
+              label="Status"
+              placeholder="Select tool status"
+              selectedKeys={field.value ? [field.value] : []}
+              onSelectionChange={(keys) => field.onChange(Array.from(keys)[0] as string)}
+              isInvalid={!!errors.on_status}
+              errorMessage={errors.on_status?.message}
               variant="bordered"
-              className="w-full"
-              isDisabled={isAutofillingStyle}
+            >
+              {statusOptions.map((s) => (
+                <SelectItem key={s} textValue={s}>
+                  {s}
+                </SelectItem>
+              ))}
+            </Select>
+          )}
+        />
+
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium text-gray-800 dark:text-gray-100">Versions</h3>
+          {versionFields.map((field, versionIndex) => (
+            <VersionSubForm
+              key={field.id}
+              versionIndex={versionIndex}
+              control={control}
+              errors={errors}
+              removeVersion={removeVersion}
+              methodOptions={methodOptions}
             />
-            {errors.agent_style && <p className="mt-1 text-xs text-red-500">{errors.agent_style.message}</p>}
-          </div>
-
-          <Select
-            label="Tools"
-            selectionMode="multiple"
-            // @ts-expect-error
-            selectedKeys={toolsValue ?? []}
-            onSelectionChange={(keys) => setValue('tools', Array.from(keys) as string[])}
-            variant="bordered"
-            className="w-full"
-            renderValue={(items) =>
-              items
-                .map((item) => {
-                  const tool = allTools.find((t) => t.tool_id === item.key)
-                  return tool ? tool.name : String(item.key) // Ensure item.key is string
-                })
-                .join(', ')
+          ))}
+          <Button
+            type="button"
+            color="secondary"
+            onClick={() =>
+              appendVersion({
+                version: '',
+                released: {
+                  env: [],
+                  args: '',
+                  port: '',
+                  method: 'http',
+                  required_env: [],
+                },
+              })
             }
+            className="mt-2"
+            startContent={<PlusCircleIcon size={18} />}
+            disabled={isSubmitting}
           >
-            {allTools.map((tool) => (
-              <SelectItem key={tool.tool_id} textValue={tool.name}>
-                {tool.name}
-              </SelectItem>
-            ))}
-          </Select>
+            Add Version
+          </Button>
+          {errors.versions &&
+            !errors.versions.message &&
+            typeof errors.versions !== 'string' && ( // Check if it's not a direct string message
+              <p className="mt-1 text-xs text-red-500">At least one version is required.</p>
+            )}
+          {errors.versions?.message && <p className="mt-1 text-xs text-red-500">{errors.versions.message}</p>}
+        </div>
 
-          <div className="flex justify-end gap-2">
-            <Button
-              variant="flat"
-              as={Link}
-              to="/agents"
-              color="default"
-              isDisabled={loading || isAutofillingStyle}
-              className="font-medium"
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              color="primary"
-              isDisabled={loading || isAutofillingStyle}
-              isLoading={loading}
-              className="bg-primary-500 font-medium dark:bg-primary-600"
-            >
-              {isEditMode ? 'Update Agent' : 'Create Agent'}
-            </Button>
-          </div>
+        <div className="flex justify-end gap-3 border-t pt-4 dark:border-neutral-800">
+          <Button variant="flat" as={Link} to="/tools" color="default" isDisabled={isSubmitting}>
+            Cancel
+          </Button>
+          <Button type="submit" color="primary" isLoading={isSubmitting} isDisabled={isSubmitting}>
+            {isEditMode ? 'Update Tool' : 'Create Tool'}
+          </Button>
         </div>
       </div>
     </form>
   )
 }
 
-export default AgentForm
+export default ToolForm

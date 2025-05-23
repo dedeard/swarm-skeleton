@@ -59,6 +59,18 @@ const routes: RouteObject[] = [
       {
         path: '/tools',
         lazy: () => import('@/pages/root/tools/page'),
+        children: [
+          // Create tool
+          {
+            path: 'create',
+            lazy: () => import('@/pages/root/tools/create/page'),
+          },
+          // Edit tool
+          {
+            path: ':toolId/edit',
+            lazy: () => import('@/pages/root/tools/edit/page'),
+          },
+        ],
       },
     ],
   },
