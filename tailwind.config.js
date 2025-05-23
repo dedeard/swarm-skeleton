@@ -10,6 +10,7 @@ export default {
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
     './node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}',
   ],
+  darkMode: ['class', '[data-mode="dark"]'],
   theme: {
     extend: {
       fontFamily: {
@@ -32,7 +33,6 @@ export default {
       },
     },
   },
-  darkMode: 'class',
   plugins: [
     heroui({
       addCommonColors: true,

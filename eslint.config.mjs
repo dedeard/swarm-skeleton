@@ -103,4 +103,5 @@ export default defineConfig([
       'react/self-closing-comp': 'off',
     },
   },
+  storybookPlugin.configs.recommended,
 ])
