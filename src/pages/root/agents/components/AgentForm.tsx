@@ -6,10 +6,12 @@ import { addToast, Button, Input, Select, SelectItem, Textarea } from '@heroui/r
 import { Switch } from '@heroui/switch'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { HomeIcon, SparklesIcon, XIcon } from 'lucide-react'
-import React, { useEffect, useRef, useState } from 'react' // Added useRef for textarea
+import React, { useEffect, useRef, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router-dom'
 import * as yup from 'yup'
+
+const DEFAULT_AGENT_STYLE = 'The agent will reply in a warm and friendly manner, using English.'
 
 const schema = yup.object({
   agent_name: yup.string().required('Agent name is required'),
@@ -57,12 +59,12 @@ const AgentForm: React.FC<AgentFormProps> = ({ agent }) => {
       reset({
         agent_name: agent.agent_name,
         description: agent.description,
-        agent_style: agent.agent_style || 'The agent will reply in a warm and friendly manner, using English.',
+        agent_style: agent.agent_style || DEFAULT_AGENT_STYLE,
         on_status: agent.on_status,
         tools: agent.tools,
       })
     } else {
-      setValue('agent_style', 'The agent will reply in a warm and friendly manner, using English.')
+      setValue('agent_style', DEFAULT_AGENT_STYLE)
     }
   }, [agent, reset, setValue])
 
@@ -75,7 +77,7 @@ const AgentForm: React.FC<AgentFormProps> = ({ agent }) => {
 
   const onSubmit = async (data: FormValues) => {
     if (!data.agent_style) {
-      data.agent_style = 'The agent will reply in a warm and friendly manner, using English.'
+      data.agent_style = DEFAULT_AGENT_STYLE
     }
     setLoading(true)
     try {
@@ -89,6 +91,7 @@ const AgentForm: React.FC<AgentFormProps> = ({ agent }) => {
       navigate('/agents')
     } catch (e: any) {
       addToast({ color: 'danger', title: e.message || 'An unknown error occurred' })
+    } finally {
       setLoading(false)
     }
   }

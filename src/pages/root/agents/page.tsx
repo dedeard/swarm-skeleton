@@ -10,3 +10,5 @@ export const Component: React.FC = () => {
     </div>
   )
 }
+
+Component.displayName = 'AgentsPage'

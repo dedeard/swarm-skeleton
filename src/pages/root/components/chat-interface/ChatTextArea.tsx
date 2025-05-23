@@ -10,14 +10,7 @@ interface ChatTextAreaProps {
   isLoading?: boolean
 }
 
-export const ChatTextArea: React.FC<ChatTextAreaProps> = ({
-  value,
-  onChange,
-  onKeyDown,
-  placeholder,
-  disabled,
-  isLoading,
-}) => {
+export const ChatTextArea: React.FC<ChatTextAreaProps> = ({ value, onChange, onKeyDown, placeholder, disabled, isLoading }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {

@@ -8,16 +8,9 @@ interface SubmitButtonProps {
   SendIcon: React.ElementType
 }
 
-export const SubmitButton: React.FC<SubmitButtonProps> = ({
-  onClick,
-  disabled,
-  isLoading,
-  LoadingIcon,
-  SendIcon,
-}) => {
+export const SubmitButton: React.FC<SubmitButtonProps> = ({ onClick, disabled, isLoading, LoadingIcon, SendIcon }) => {
   const getButtonClasses = () => {
-    let baseClasses =
-      'flex items-center justify-center rounded-full p-2 text-white transition-colors duration-150 focus:outline-none'
+    let baseClasses = 'flex items-center justify-center rounded-full p-2 text-white transition-colors duration-150 focus:outline-none'
     if (isLoading) {
       return `${baseClasses} cursor-wait bg-primary-500/70`
     }
