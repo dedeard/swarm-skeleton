@@ -1,6 +1,6 @@
-import Agents from '@/components/features/agents'
 import React from 'react'
 import { Outlet } from 'react-router-dom'
+import Agents from './components/Agents'
 
 export const Component: React.FC = () => {
   return (

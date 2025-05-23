@@ -1,6 +1,6 @@
-import MarkdownRenderer from '@/components/features/chat/MarkdownRenderer' // Assuming this path is correct
 import { IChatMessage } from '@/types/agent'
 import React from 'react'
+import MarkdownRenderer from './MarkdownRenderer'
 
 interface ChatMessageItemProps {
   chat: IChatMessage

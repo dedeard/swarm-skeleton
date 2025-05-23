@@ -12,27 +12,27 @@ const routes: RouteObject[] = [
       // Settings routes
       {
         path: 'settings',
-        lazy: () => import('@/pages/home/settings/page'),
+        lazy: () => import('@/pages/root/settings/page'),
         children: [
           // Default settings page (security)
           {
             path: '',
-            lazy: () => import('@/pages/home/settings/security/page'),
+            lazy: () => import('@/pages/root/settings/security/page'),
           },
           // Profile settings
           {
             path: 'profile',
-            lazy: () => import('@/pages/home/settings/security/page'),
+            lazy: () => import('@/pages/root/settings/security/page'),
           },
           // Preferences settings
           {
             path: 'preferences',
-            lazy: () => import('@/pages/home/settings/security/page'),
+            lazy: () => import('@/pages/root/settings/security/page'),
           },
           // Companies settings
           {
             path: 'companies',
-            lazy: () => import('@/pages/home/settings/security/page'),
+            lazy: () => import('@/pages/root/settings/security/page'),
           },
         ],
       },
@@ -40,17 +40,17 @@ const routes: RouteObject[] = [
       // Agents routes
       {
         path: 'agents',
-        lazy: () => import('@/pages/home/agents/page'),
+        lazy: () => import('@/pages/root/agents/page'),
         children: [
           // Create agent
           {
             path: 'create',
-            lazy: () => import('@/pages/home/agents/create/page'),
+            lazy: () => import('@/pages/root/agents/create/page'),
           },
           // Edit agent
           {
             path: ':agentId/edit',
-            lazy: () => import('@/pages/home/agents/edit/page'),
+            lazy: () => import('@/pages/root/agents/edit/page'),
           },
         ],
       },

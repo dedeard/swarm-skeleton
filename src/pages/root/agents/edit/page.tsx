@@ -1,4 +1,4 @@
-import AgentForm from '@/components/features/agents/AgentForm'
+import AgentForm from '@/pages/root/agents/components/AgentForm'
 import { useAgentStore } from '@/store/agent.store'
 import { IAgent } from '@/types/agent'
 import React from 'react'

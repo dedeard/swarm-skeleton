@@ -1,5 +1,5 @@
-import MarkdownRenderer from '@/components/features/chat/MarkdownRenderer'
 import React from 'react'
+import MarkdownRenderer from './MarkdownRenderer'
 
 interface StreamingMessageDisplayProps {
   streamMessage: string
