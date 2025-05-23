@@ -1,6 +1,7 @@
+import DOMPurify from 'dompurify'
 import { useTheme } from 'next-themes'
-import React, { memo, useMemo } from 'react'
-import ReactMarkdown from 'react-markdown'
+import React, { HTMLAttributes, memo, useEffect, useMemo, useState } from 'react'
+import ReactMarkdown, { Components } from 'react-markdown'
 import { PrismLight as SyntaxHighlighter } from 'react-syntax-highlighter'
 import css from 'react-syntax-highlighter/dist/esm/languages/prism/css'
 import javascript from 'react-syntax-highlighter/dist/esm/languages/prism/javascript'
@@ -11,8 +12,8 @@ import tsx from 'react-syntax-highlighter/dist/esm/languages/prism/tsx'
 import typescript from 'react-syntax-highlighter/dist/esm/languages/prism/typescript'
 import yaml from 'react-syntax-highlighter/dist/esm/languages/prism/yaml'
 import { oneDark, oneLight } from 'react-syntax-highlighter/dist/esm/styles/prism'
+import rehypeRaw, { Options as RehypeRawOptions } from 'rehype-raw' // ES Module import for rehype-raw
 
-// Register languages once at module level
 SyntaxHighlighter.registerLanguage('tsx', tsx)
 SyntaxHighlighter.registerLanguage('typescript', typescript)
 SyntaxHighlighter.registerLanguage('javascript', javascript)
@@ -22,41 +23,95 @@ SyntaxHighlighter.registerLanguage('css', css)
 SyntaxHighlighter.registerLanguage('yaml', yaml)
 SyntaxHighlighter.registerLanguage('markdown', markdownLang)
 
-// Language mapping for common aliases
 const LANGUAGE_MAP: Record<string, string> = {
   ts: 'typescript',
   js: 'javascript',
   md: 'markdown',
 }
 
+// --- IMPORTANT NOTE ON EVENT HANDLERS ---
+// (Assuming the global handleClick setup remains as is for HTML blocks)
+if (typeof window !== 'undefined') {
+  if (!(window as any).handleClick) {
+    ;(window as any).handleClick = function (type: string) {
+      alert(`Global handleClick: Button '${type}' clicked.`)
+    }
+  }
+}
+// --- END IMPORTANT NOTE ---
+
 interface MarkdownRendererProps {
   content: string
   className?: string
 }
 
-interface CustomCodeProps extends React.HTMLAttributes<HTMLElement> {
+interface CustomCodeProps extends HTMLAttributes<HTMLElement> {
   node?: any
   inline?: boolean
+  className?: string
+  children?: React.ReactNode
+}
+
+interface CustomBlockData {
+  type: string
+  content: string
+  // You can add other fields from your JSON structure here, like 'additional'
+  additional?: Record<string, any>
 }
 
 const MarkdownRenderer: React.FC<MarkdownRendererProps> = memo(({ content, className }) => {
   const { theme } = useTheme()
+  const [processedMarkdown, setProcessedMarkdown] = useState<string>('')
+  const [customBlockDataMap, setCustomBlockDataMap] = useState<Record<string, CustomBlockData>>({})
 
-  const components = useMemo(
-    () => ({
+  useEffect(() => {
+    if (!content) {
+      setProcessedMarkdown('')
+      setCustomBlockDataMap({})
+      return
+    }
+
+    const blockRegex = /!#block#!\s*(\{[\s\S]*?\})\s*!#\/block#!/gs // Use [\s\S] to match across newlines in JSON
+    const newCustomBlockDataMap: Record<string, CustomBlockData> = {}
+    let blockIdCounter = 0
+
+    const newMarkdown = content.replace(blockRegex, (_fullMatch, jsonString) => {
+      try {
+        const jsonData: CustomBlockData = JSON.parse(jsonString)
+        const currentBlockId = `custom-block-${blockIdCounter++}`
+        newCustomBlockDataMap[currentBlockId] = jsonData
+        // Ensure the placeholder is a simple div that rehypeRaw will pass through
+        return `<div data-custom-block-id="${currentBlockId}"></div>`
+      } catch (e) {
+        console.error('Failed to parse custom block JSON:', e, jsonString)
+        return '' // Return an HTML comment for parse errors
+      }
+    })
+
+    setProcessedMarkdown(newMarkdown)
+    setCustomBlockDataMap(newCustomBlockDataMap)
+  }, [content])
+
+  const rehypePluginsConfig = useMemo((): RehypeRawOptions[] => {
+    // Ensure rehypeRaw passes through divs so our custom component can handle them
+    return [[rehypeRaw, { passThrough: ['div'] }]] as any // Cast as any if specific type causes issues
+  }, [])
+
+  const components = useMemo((): Components => {
+    // Define components object here, it will be closed over by the div handler
+    const currentComponents: Components = {
       code: (props: CustomCodeProps) => {
         const { className: codeClassName, children, inline, node: _node, ...rest } = props
         const match = /language-(\w+)/.exec(codeClassName || '')
         let language = match ? match[1] : undefined
 
-        // Use language mapping for common aliases
         if (language && LANGUAGE_MAP[language]) {
           language = LANGUAGE_MAP[language]
         }
 
         if (inline) {
           return (
-            <code className="rounded-sm bg-gray-100 px-1 py-0.5 text-sm dark:bg-gray-700" {...rest}>
+            <code className={`rounded-sm bg-gray-100 px-1 py-0.5 text-sm dark:bg-gray-700`} {...rest}>
               {children}
             </code>
           )
@@ -75,8 +130,8 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = memo(({ content, class
                 style: {
                   wordBreak: 'break-all',
                   whiteSpace: 'pre-wrap',
-                  lineHeight: 1,
-                  fontSize: 11,
+                  lineHeight: 1.5,
+                  fontSize: '0.875rem',
                 },
               }}
               {...rest}
@@ -91,6 +146,36 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = memo(({ content, class
             <code className={codeClassName}>{children}</code>
           </pre>
         )
+      },
+      div: (props: HTMLAttributes<HTMLDivElement> & { node?: any; 'data-custom-block-id'?: string }) => {
+        const blockId = props['data-custom-block-id']
+        if (blockId && customBlockDataMap[blockId]) {
+          const blockData = customBlockDataMap[blockId]
+          if (blockData.type === 'html') {
+            // Ensure DOMPurify is only used in the browser
+            const sanitizedHtml = typeof window !== 'undefined' ? DOMPurify.sanitize(blockData.content) : blockData.content
+            return <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
+          } else if (blockData.type === 'markdown') {
+            // Render markdown content recursively using the same set of components and plugins
+            return (
+              <ReactMarkdown
+                components={currentComponents} // Use the same components definition
+                rehypePlugins={rehypePluginsConfig as any}
+              >
+                {blockData.content}
+              </ReactMarkdown>
+            )
+          } else {
+            console.warn(`Custom block "${blockId}" has unknown type: ${blockData.type}`)
+            return (
+              <div {...props}>
+                Error: Custom block type '{blockData.type}' not handled. Placeholder content: {props.children}
+              </div>
+            )
+          }
+        }
+        // Render a normal div if it's not a custom block placeholder
+        return <div {...props}>{props.children}</div>
       },
       img: ({ node: _node, src, alt, ...props }: any) => (
         <img src={src} alt={alt} loading="lazy" className="mx-auto block h-auto max-w-full rounded-md shadow-md" {...props} />
@@ -182,13 +267,15 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = memo(({ content, class
           {children}
         </td>
       ),
-    }),
-    [theme],
-  )
+    }
+    return currentComponents
+  }, [theme, customBlockDataMap, rehypePluginsConfig]) // Added rehypePluginsConfig to dependency array for completeness, though it's stable
 
   return (
     <div className={className}>
-      <ReactMarkdown components={components}>{content}</ReactMarkdown>
+      <ReactMarkdown components={components} rehypePlugins={rehypePluginsConfig as any}>
+        {processedMarkdown}
+      </ReactMarkdown>
     </div>
   )
 })
