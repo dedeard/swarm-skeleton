@@ -11,12 +11,13 @@ interface CustomMarkdownBlockProps {
 }
 
 const CustomMarkdownBlock: React.FC<CustomMarkdownBlockProps> = ({ blockData, components, rehypePlugins }) => {
+  const content = typeof blockData.content === 'string' ? blockData.content : ''
   return (
     <ReactMarkdown
       components={components}
       rehypePlugins={rehypePlugins as any} // Cast as any if specific type causes issues
     >
-      {blockData.content}
+      {content}
     </ReactMarkdown>
   )
 }

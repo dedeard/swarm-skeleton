@@ -7,7 +7,8 @@ interface CustomHtmlBlockProps {
 }
 
 const CustomHtmlBlock: React.FC<CustomHtmlBlockProps> = ({ blockData }) => {
-  const sanitizedHtml = sanitizeHtml(blockData.content)
+  const content = typeof blockData.content === 'string' ? blockData.content : ''
+  const sanitizedHtml = sanitizeHtml(content)
   return <div dangerouslySetInnerHTML={{ __html: sanitizedHtml }} />
 }
 

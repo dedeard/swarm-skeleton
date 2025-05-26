@@ -1,5 +1,5 @@
 import { useTheme } from 'next-themes'
-import React, { HTMLAttributes, memo, useMemo } from 'react'
+import React, { HTMLAttributes, lazy, memo, Suspense, useMemo } from 'react' // Added lazy, Suspense
 import ReactMarkdown, { Components } from 'react-markdown'
 import rehypeRaw, { Options as RehypeRawOptions } from 'rehype-raw'
 
@@ -7,6 +7,9 @@ import CodeBlock from './components/CodeBlock'
 import CustomHtmlBlock from './components/CustomHtmlBlock'
 import CustomMarkdownBlock from './components/CustomMarkdownBlock'
 import ImageWithLoader from './components/ImageWithLoader'
+// Import VideoBlock dynamically using React.lazy
+const VideoBlock = lazy(() => import('./components/VideoBlock')) // MOVED AND CHANGED
+
 import {
   StyledBlockquote,
   StyledH1,
@@ -28,7 +31,7 @@ import { useCustomBlockParser } from './hooks/useMarkdownProcessing'
 import { CustomCodeProps, MarkdownRendererProps } from './types'
 
 const MarkdownRenderer: React.FC<MarkdownRendererProps> = memo(({ content, className }) => {
-  const { theme } = useTheme() // theme is used by CodeBlock, but components object is memoized here
+  const { theme } = useTheme()
   const { processedMarkdown, customBlockDataMap } = useCustomBlockParser(content)
 
   const rehypePluginsConfig = useMemo((): RehypeRawOptions[] => {
@@ -36,7 +39,6 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = memo(({ content, class
   }, [])
 
   const components = useMemo((): Components => {
-    // Define components object here, it will be closed over by the div handler
     const currentComponents: Components = {
       code: (props: CustomCodeProps) => <CodeBlock {...props} />,
       div: (props: HTMLAttributes<HTMLDivElement> & { node?: any; 'data-custom-block-id'?: string }) => {
@@ -46,8 +48,17 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = memo(({ content, class
           if (blockData.type === 'html') {
             return <CustomHtmlBlock blockData={blockData} />
           } else if (blockData.type === 'markdown') {
-            // Pass currentComponents and rehypePluginsConfig for recursive rendering
             return <CustomMarkdownBlock blockData={blockData} components={currentComponents} rehypePlugins={rehypePluginsConfig} />
+          } else if (blockData.type === 'video') {
+            // Use the lazy-loaded VideoBlock with Suspense
+            return (
+              <Suspense fallback={<div>Loading...</div>}>
+                {' '}
+                {/* Customize fallback as needed */}
+                {/* @ts-ignore */}
+                <VideoBlock blockData={blockData} />
+              </Suspense>
+            )
           } else {
             console.warn(`Custom block "${blockId}" has unknown type: ${blockData.type}`)
             return (
@@ -77,12 +88,10 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = memo(({ content, class
       td: (props) => <StyledTableCell {...props} />,
     }
     return currentComponents
-  }, [customBlockDataMap, rehypePluginsConfig, theme]) // theme added as CodeBlock indirectly depends on it via components
+  }, [customBlockDataMap, rehypePluginsConfig, theme])
 
   if (!processedMarkdown && Object.keys(customBlockDataMap).length === 0 && content) {
-    // This case can happen if content is provided but processing is not yet complete or resulted in empty
-    // We might want to show a loader or the original content briefly
-    // For now, rendering with empty processedMarkdown until it's ready
+    // ...
   }
 
   return (
