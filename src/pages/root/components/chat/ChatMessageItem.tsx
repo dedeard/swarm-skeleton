@@ -1,7 +1,7 @@
+import { MarkdownRenderer } from '@/components/MarkdownProcessor'
 import { IChatMessage } from '@/types/agent'
 import { cn } from '@heroui/react'
 import React, { memo, useMemo } from 'react'
-import MarkdownRenderer from './MarkdownRenderer'
 
 interface ChatMessageItemProps {
   chat: IChatMessage

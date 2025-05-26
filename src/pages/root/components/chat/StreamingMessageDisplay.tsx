@@ -1,6 +1,6 @@
+import { MarkdownRenderer } from '@/components/MarkdownProcessor'
 import { cn } from '@heroui/react'
 import React, { memo } from 'react'
-import MarkdownRenderer from './MarkdownRenderer'
 
 interface StreamingMessageDisplayProps {
   streamMessage: string
