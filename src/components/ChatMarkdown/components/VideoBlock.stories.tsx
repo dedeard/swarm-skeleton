@@ -3,7 +3,7 @@ import { VideoBlockData } from '../types'
 import VideoBlock from './VideoBlock'
 
 const meta: Meta<typeof VideoBlock> = {
-  title: 'MarkdownProcessor/VideoBlock',
+  title: 'ChatMarkdown/VideoBlock',
   component: VideoBlock,
   parameters: {
     layout: 'centered',

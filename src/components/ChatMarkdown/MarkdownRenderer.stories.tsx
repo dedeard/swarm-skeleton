@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react'
 import MarkdownRenderer from './MarkdownRenderer'
 
 const meta: Meta<typeof MarkdownRenderer> = {
-  title: 'MarkdownProcessor/MarkdownRenderer',
+  title: 'ChatMarkdown/MarkdownRenderer',
   component: MarkdownRenderer,
   parameters: {
     layout: 'padded',

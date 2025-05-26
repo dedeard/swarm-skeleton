@@ -1,4 +1,4 @@
-import { MarkdownRenderer } from '@/components/MarkdownProcessor'
+import { MarkdownRenderer } from '@/components/ChatMarkdown'
 import { IChatMessage } from '@/types/agent'
 import { cn } from '@heroui/react'
 import React, { memo, useMemo } from 'react'
