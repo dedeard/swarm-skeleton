@@ -6,7 +6,7 @@ import ChatInterface from './chat-interface/ChatInterface'
 import ChatMessagesList from './chat/ChatMessagesList'
 import MainSidebar from './sidebar/MainSidebar'
 
-const Layout: React.FC<React.PropsWithChildren> = () => {
+const Chat: React.FC<React.PropsWithChildren> = () => {
   const { sidebarOpen } = useLayoutContext()
 
   return (
@@ -26,4 +26,4 @@ const Layout: React.FC<React.PropsWithChildren> = () => {
   )
 }
 
-export default Layout
+export default Chat
