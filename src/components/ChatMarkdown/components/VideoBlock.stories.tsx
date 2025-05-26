@@ -169,3 +169,68 @@ export const MinimalConfig: Story = {
     } as VideoBlockData,
   },
 }
+
+export const LoadingState: Story = {
+  args: {
+    blockData: {
+      type: 'video',
+      content: {
+        src: '',
+        alt: 'Loading video...',
+        additional: {
+          width: '640',
+          height: '360',
+        },
+      },
+      isLoading: true,
+      isComplete: false,
+    } as VideoBlockData,
+  },
+}
+
+export const IncompleteBlock: Story = {
+  args: {
+    blockData: {
+      type: 'video',
+      content: {
+        src: '',
+        alt: 'Loading video...',
+      },
+      isLoading: true,
+      isComplete: false,
+    } as VideoBlockData,
+  },
+}
+
+export const ParseError: Story = {
+  args: {
+    blockData: {
+      type: 'video',
+      content: {
+        src: '',
+        alt: 'Error loading video',
+      },
+      isLoading: false,
+      isComplete: false,
+      parseError: 'JSON parse error: Unexpected token } in JSON at position 45',
+    } as VideoBlockData,
+  },
+}
+
+export const MissingSource: Story = {
+  args: {
+    blockData: {
+      type: 'video',
+      content: {
+        src: '',
+        alt: 'Video without source',
+        additional: {
+          width: '480',
+          height: '270',
+        },
+      },
+      isLoading: false,
+      isComplete: true,
+    } as VideoBlockData,
+  },
+}

@@ -55,8 +55,7 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = memo(({ content, class
               <Suspense fallback={<div>Loading...</div>}>
                 {' '}
                 {/* Customize fallback as needed */}
-                {/* @ts-ignore */}
-                <VideoBlock blockData={blockData} />
+                <VideoBlock blockData={blockData as any} />
               </Suspense>
             )
           } else {

@@ -16,6 +16,9 @@ export interface CustomBlockData {
   type: string
   content: string | Record<string, any>
   additional?: Record<string, any>
+  isComplete?: boolean
+  isLoading?: boolean
+  parseError?: string
 }
 
 export interface VideoBlockData extends Omit<CustomBlockData, 'content'> {
@@ -34,4 +37,7 @@ export interface VideoBlockData extends Omit<CustomBlockData, 'content'> {
       preload?: 'none' | 'metadata' | 'auto'
     }
   }
+  isComplete?: boolean
+  isLoading?: boolean
+  parseError?: string
 }
