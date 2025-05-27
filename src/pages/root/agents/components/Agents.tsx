@@ -1,12 +1,13 @@
 import useDynamicUrl from '@/hooks/use-dynamic-url'
 import { useApi } from '@/hooks/useApi'
 import { useAgentStore } from '@/store/agent.store'
-import { Button, Input, Spinner } from '@heroui/react'
-import { PlusIcon, XIcon } from 'lucide-react'
+import { Button, Input } from '@heroui/react'
+import { PlusIcon, SparklesIcon, XIcon } from 'lucide-react'
 import React, { useMemo, useState } from 'react'
 import PerfectScrollbar from 'react-perfect-scrollbar'
 import { Link } from 'react-router-dom'
 import AgentItem from './AgentItem'
+import AgentItemSkeleton from './AgentItemSkeleton'
 
 const Agents: React.FC = () => {
   const { agents, fetchAgents } = useAgentStore()
@@ -26,6 +27,18 @@ const Agents: React.FC = () => {
       <div className="flex items-center justify-between p-3">
         <span className="block text-lg">Agents ({filteredAgents.length})</span>
         <div className="flex items-center gap-3">
+          <Button
+            as={Link}
+            to="/agents/generator"
+            isIconOnly
+            size="sm"
+            variant="light"
+            radius="full"
+            color="primary" // Changed color for distinction
+            title="Auto-generate Agent from Prompt"
+          >
+            <SparklesIcon size={20} />
+          </Button>
           <Button as={Link} to="/agents/create" isIconOnly size="sm" variant="light" radius="full" color="success">
             <PlusIcon size={20} />
           </Button>
@@ -44,27 +57,16 @@ const Agents: React.FC = () => {
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
         />
-        {/* <div className="flex items-end gap-3 py-3">
-          <div className="flex-1">
-            <span className="text-xs">Filter by category:</span>
-            <Select placeholder="Select categories" size="sm" className="max-w-sm" selectionMode="multiple">
-              {animals.map((animal) => (
-                <SelectItem key={animal.key}>{animal.label}</SelectItem>
-              ))}
-            </Select>
-          </div>
-          <Button isIconOnly size="sm">
-            <ListIcon size={14} />
-          </Button>
-        </div> */}
       </div>
 
       <PerfectScrollbar className="h-[calc(100%-108px)] w-full p-3">
         <div className="grid w-full grid-cols-1 gap-3">
           {loading && (
-            <div className="h-full w-full items-center justify-center">
-              <Spinner size="lg" />
-            </div>
+            <>
+              {Array.from({ length: 3 }).map((_, i) => (
+                <AgentItemSkeleton key={i} />
+              ))}
+            </>
           )}
           {!loading && filteredAgents.map((agent, i) => <AgentItem key={i} agent={agent} />)}
         </div>

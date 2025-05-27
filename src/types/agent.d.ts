@@ -17,6 +17,7 @@ export interface IAgentPayload {
   on_status: boolean
   tools: Array<string>
   company_id: string
+  keywords?: string[] // Added keywords
 }
 
 export type IChatRole = 'user' | 'assistant' | 'system' | string
@@ -56,4 +57,54 @@ export interface IThreadPreview {
   last_message_timestamp?: string // Converted from lastMessageTimestamp
   first_message_snippet?: string // Converted from firstMessageSnippet
   last_message_snippet?: string // Converted from lastMessageSnippet
+}
+
+export interface IFieldMetadata {
+  name: string
+  description: string
+}
+
+export interface IAvailableFieldInfo {
+  fields: string[]
+  descriptions: Record<string, string>
+}
+
+export interface IAgentVariation extends Partial<IAgentPayload> {
+  agent_name: string // For clarity, let's expect agent_name
+  tools: string[]
+  keywords?: string[]
+}
+
+export interface IMultiAgentParseData {
+  common_attributes: Partial<IAgentPayload> & { keywords?: string[] } // Added keywords
+  agent_variations: IAgentVariation[]
+  agent_count: number
+  need_more_info?: boolean
+  missing_info?: string
+  has_multi_agent?: boolean
+}
+
+export interface IAutofillResponse {
+  field_name: string
+  autofilled_value: any // string | string[] depending on the field
+  reasoning?: string
+}
+
+export interface IKeywordsResponse {
+  keywords: string[]
+}
+
+export interface IChatMessage {
+  id: string // Add an ID for React keys
+  role: 'user' | 'assistant' | 'system' | string
+  content: string
+  timestamp: string
+}
+
+// For MCPHub recommendations if the structure is defined
+export interface IMCPHubToolRecommendation {
+  name: string
+  description: string
+  url?: string
+  // any other relevant fields
 }

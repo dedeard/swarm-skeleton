@@ -31,6 +31,10 @@ const agentsRoutes: RouteObject[] = [
     lazy: () => import('@/pages/root/agents/create/page'),
   },
   {
+    path: 'generator',
+    lazy: () => import('@/pages/root/agents/generator/page'),
+  },
+  {
     path: ':agentId/edit',
     lazy: () => import('@/pages/root/agents/edit/page'),
   },
