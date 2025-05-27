@@ -3,10 +3,10 @@ import { ITool } from '@/types/tool'
 import { Button, Card, CardBody, CardHeader, Switch, Textarea, useDisclosure } from '@heroui/react'
 import { CheckCircle, ClipboardList, FilePlus, Info, Sparkles, Trash2, Users } from 'lucide-react' // Ensure these are imported
 import React, { useCallback, useState } from 'react'
-import AgentFieldDescriptionsModal from '../generator/components/AgentFieldDescriptionsModal' // Import the new modal component
-import MCPHubRecommendations from '../generator/components/MCPHubRecommendations'
-import MultiAgentPreview from '../generator/components/MultiAgentPreview'
-import SingleAgentPreview from '../generator/components/SingleAgentPreview'
+import AgentFieldDescriptionsModal from './AgentFieldDescriptionsModal' // Import the new modal component
+import MCPHubRecommendations from './MCPHubRecommendations'
+import MultiAgentPreview from './MultiAgentPreview'
+import SingleAgentPreview from './SingleAgentPreview'
 
 const generateId = () => Math.random().toString(36).substr(2, 9)
 

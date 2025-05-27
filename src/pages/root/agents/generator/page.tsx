@@ -1,6 +1,6 @@
 import React from 'react'
 import PerfectScrollbar from 'react-perfect-scrollbar'
-import AgentCreatorPage from '../components/AgentCreator'
+import AgentCreatorPage from './components/AgentCreator'
 
 export const Component: React.FC = () => {
   return (
