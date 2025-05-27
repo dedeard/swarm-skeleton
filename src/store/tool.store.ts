@@ -9,7 +9,7 @@ interface ToolState {
   toolsLoaded: boolean
 
   // Actions
-  fetchTools: () => Promise<void>
+  fetchTools: () => Promise<ITool[]>
   fetchToolById: (toolId: string) => Promise<ITool | undefined>
   addTool: (payload: Partial<IToolPayload>) => Promise<void>
   editTool: (toolId: string, payload: Partial<IToolPayload>) => Promise<void>
@@ -24,11 +24,13 @@ export const useToolStore = create<ToolState>()((set, get) => ({
   // Actions
   fetchTools: async () => {
     try {
-      if (get().toolsLoaded) return
+      if (get().toolsLoaded) return get().tools // Return early if tools are already loaded
       const tools = await getTools()
       set({ tools, toolsLoaded: true })
+      return tools
     } catch (error) {
       console.error('Failed to fetch tools:', error)
+      return []
     }
   },
 

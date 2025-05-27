@@ -1,149 +1,82 @@
-import { IAgentPayload, IAvailableFieldInfo, IChatMessage, IMCPHubToolRecommendation, IMultiAgentParseData } from '@/types/agent' // Assuming ITool is in agent.d.ts or similar
-import { ITool } from '@/types/tool'
+import {
+  autofillAgentField,
+  createAgent,
+  extractAgentKeywords,
+  getAgentFieldMetadata,
+  parseMultiAgentInput,
+  parseUserInputStream,
+} from '@/services/agent.service'
+import { useToolStore } from '@/store/tool.store'
+import { IAgentPayload, IAvailableFieldInfo, IChatMessage, IMCPHubToolRecommendation, IMultiAgentParseData } from '@/types/agent'
 import { Button, Card, CardBody, CardHeader, Switch, Textarea, useDisclosure } from '@heroui/react'
-import { CheckCircle, ClipboardList, FilePlus, Info, Sparkles, Trash2, Users } from 'lucide-react' // Ensure these are imported
-import React, { useCallback, useState } from 'react'
-import AgentFieldDescriptionsModal from './AgentFieldDescriptionsModal' // Import the new modal component
+import { CheckCircle, ClipboardList, FilePlus, Info, Sparkles, Trash2, Users } from 'lucide-react'
+import React, { useCallback, useEffect, useState } from 'react'
+import AgentFieldDescriptionsModal from './AgentFieldDescriptionsModal'
 import MCPHubRecommendations from './MCPHubRecommendations'
 import MultiAgentPreview from './MultiAgentPreview'
 import SingleAgentPreview from './SingleAgentPreview'
 
 const generateId = () => Math.random().toString(36).substr(2, 9)
 
-// Dummy Data
-const dummyAgentData: Partial<IAgentPayload> = {
-  agent_name: 'Dummy Agent',
-  description: 'This is a dummy agent for UI display purposes.',
-  agent_style: 'Friendly',
-  on_status: true,
-  tools: ['tool1', 'tool2'],
-  keywords: ['dummy', 'example', 'ui'],
-  company_id: 'dummy_company_id',
-}
-
-const dummyMultiAgentParseResponse: IMultiAgentParseData = {
-  has_multi_agent: true,
-  agent_count: 2,
-  common_attributes: {
-    agent_name: 'Common Dummy Base',
-    description: 'Common description for dummy agents.',
-    agent_style: 'Neutral',
-    on_status: true,
-    tools: ['tool_common_1'],
-    keywords: ['common', 'base'],
-  },
-  agent_variations: [
-    {
-      agent_name: 'Dummy Variation 1',
-      description: 'Description for dummy variation 1.',
-      tools: ['tool_var1_1', 'tool_var1_2'],
-      keywords: ['variation1', 'dummy'],
-    },
-    {
-      agent_name: 'Dummy Variation 2',
-      description: 'Description for dummy variation 2.',
-      tools: ['tool_var2_1'],
-      keywords: ['variation2', 'example'],
-    },
-  ],
-  need_more_info: false,
-  missing_info: '',
-}
-
-const dummyAvailableFieldsInfo: IAvailableFieldInfo = {
-  fields: ['agent_name', 'description', 'agent_style', 'tools', 'keywords'],
-  descriptions: {
-    agent_name: 'The name of the agent.',
-    description: 'A brief description of what the agent does.',
-    agent_style: 'The personality or style of the agent.',
-    tools: 'A list of tools the agent can use.',
-    keywords: 'Keywords associated with the agent.',
-  },
-}
-
-const dummyMCPHubRecommendations: IMCPHubToolRecommendation[] = [
-  { name: 'Dummy Rec Tool 1', description: 'A highly recommended dummy tool.', url: '#' },
-  { name: 'Dummy Rec Tool 2', description: 'Another great dummy tool for your consideration.', url: '#' },
-]
-
-const dummyAvailableTools: ITool[] = [
-  {
-    tool_id: 'tool1',
-    name: 'Dummy Tool Alpha',
-    description: 'Alpha dummy tool description.',
-    on_status: 'Online',
-    versions: [], // Add versions property
-  },
-  {
-    tool_id: 'tool2',
-    name: 'Dummy Tool Beta',
-    description: 'Beta dummy tool description.',
-    on_status: 'Predefined',
-    versions: [], // Add versions property
-  },
-  {
-    tool_id: 'tool_common_1',
-    name: 'Common Dummy Tool',
-    description: 'A common tool for all dummies.',
-    on_status: 'Online',
-    versions: [], // Add versions property
-  },
-  {
-    tool_id: 'tool_var1_1',
-    name: 'Variation 1 Tool A',
-    description: 'Tool A for variation 1.',
-    on_status: 'Offline',
-    versions: [], // Add versions property
-  },
-  {
-    tool_id: 'tool_var1_2',
-    name: 'Variation 1 Tool B',
-    description: 'Tool B for variation 1.',
-    on_status: 'Online',
-    versions: [], // Add versions property
-  },
-  {
-    tool_id: 'tool_var2_1',
-    name: 'Variation 2 Tool X',
-    description: 'Tool X for variation 2.',
-    on_status: 'Predefined',
-    versions: [], // Add versions property
-  },
-]
+// Default model settings (matching the example)
+const DEFAULT_MODEL = 'openai/gpt-4o-mini'
+const DEFAULT_TEMPERATURE = 0
 
 interface AgentCreatorState {
   userInput: string
   isMultiAgentMode: boolean
   extractedAgentData: Partial<IAgentPayload>
   multiAgentParseResponse: IMultiAgentParseData | null
-
   availableFieldsInfo: IAvailableFieldInfo | null
-
   mcphubRecommendations: IMCPHubToolRecommendation[]
-
   chatMessages: IChatMessage[]
-  currentCompanyId?: string
+  isProcessing: boolean
+  isToolsAutofilling: boolean
 }
 
 const AgentCreator: React.FC = () => {
-  const availableToolsFromStore = dummyAvailableTools // Use dummy tools
+  const { tools: availableToolsFromStore, fetchTools } = useToolStore()
+  const [isToolsLoading, setIsToolsLoading] = useState(true)
 
   const [state, setState] = useState<AgentCreatorState>({
-    userInput: 'Create a helpful assistant agent.',
+    userInput: '',
     isMultiAgentMode: false,
-    extractedAgentData: { ...dummyAgentData },
-    multiAgentParseResponse: null, // Set to dummyMultiAgentParseResponse when isMultiAgentMode is true initially if needed
-    availableFieldsInfo: { ...dummyAvailableFieldsInfo },
-    mcphubRecommendations: [...dummyMCPHubRecommendations],
-    chatMessages: [
-      { role: 'user', content: 'Initial dummy user message.', timestamp: new Date().toISOString() },
-      { role: 'agent', content: 'Initial dummy agent response.', timestamp: new Date().toISOString() },
-    ],
+    extractedAgentData: { on_status: true, tools: [] },
+    multiAgentParseResponse: null,
+    availableFieldsInfo: null,
+    mcphubRecommendations: [],
+    chatMessages: [],
+    isProcessing: false,
+    isToolsAutofilling: false,
   })
 
   const { isOpen: isFieldHelpModalOpen, onOpen: onFieldHelpModalOpen, onClose: onFieldHelpModalClose } = useDisclosure()
   const [toolSearchTerm, setToolSearchTerm] = useState('')
   const [multiToolSearchTerms, setMultiToolSearchTerms] = useState<Record<number, string>>({})
+
+  // Initialize data on component mount
+  useEffect(() => {
+    const initializeData = async () => {
+      try {
+        // Load tools
+        await fetchTools()
+
+        // Load field metadata
+        const fieldMetadata = await getAgentFieldMetadata()
+        setState((prev) => ({ ...prev, availableFieldsInfo: fieldMetadata }))
+
+        // Add welcome message
+        addChatMessage('assistant', 'Give me a detailed description of an agent you would like to make.')
+      } catch (error) {
+        console.error('Failed to initialize agent creator:', error)
+        addChatMessage('assistant', 'There was an error loading the Agent Creator. Please try refreshing the page.')
+      } finally {
+        setIsToolsLoading(false)
+      }
+    }
+
+    initializeData()
+  }, [fetchTools])
 
   const addChatMessage = useCallback((role: IChatMessage['role'], content: string) => {
     setState((prev) => ({
@@ -152,49 +85,388 @@ const AgentCreator: React.FC = () => {
     }))
   }, [])
 
-  const handleProcessUserInput = async () => {
-    // Simplified: Just add chat messages and toggle display based on mode
-    addChatMessage('user', state.userInput)
-    addChatMessage('agent', 'Processing your request (dummy)...')
+  const processStreamEvent = (eventData: string, accumulatedFields: Record<string, any>) => {
+    const lines = eventData.split('\n')
+    let eventType = ''
+    let data = ''
 
-    if (state.isMultiAgentMode) {
-      setState((prev) => ({ ...prev, multiAgentParseResponse: { ...dummyMultiAgentParseResponse } }))
-      addChatMessage('agent', `Detected ${dummyMultiAgentParseResponse.agent_count} agents (dummy).`)
-    } else {
+    for (const line of lines) {
+      if (line.startsWith('event:')) {
+        eventType = line.substring(6).trim()
+      } else if (line.startsWith('data:')) {
+        data = line.substring(5).trim()
+      }
+    }
+
+    if (!data || data === '[DONE]') return false
+
+    try {
+      const jsonData = JSON.parse(data)
+
+      if (eventType === 'field_update') {
+        for (const [field, value] of Object.entries(jsonData)) {
+          accumulatedFields[field] = value
+
+          // Update state in real-time
+          setState((prev) => ({
+            ...prev,
+            extractedAgentData: {
+              ...prev.extractedAgentData,
+              [field]: field === 'tools' ? (Array.isArray(value) ? value : []) : value,
+              on_status: true, // Always set to true
+            },
+          }))
+        }
+        return true
+      }
+    } catch (error) {
+      console.error('Error processing stream event:', error)
+    }
+
+    return false
+  }
+
+  const handleProcessUserInput = async () => {
+    if (state.isProcessing || !state.userInput.trim()) return
+
+    addChatMessage('user', state.userInput)
+
+    setState((prev) => ({ ...prev, isProcessing: true }))
+
+    try {
+      if (state.isMultiAgentMode) {
+        // Handle multi-agent parsing
+        const multiAgentResponse = await parseMultiAgentInput({
+          user_input: state.userInput,
+          model_name: DEFAULT_MODEL,
+          temperature: DEFAULT_TEMPERATURE,
+          existing_data: Object.keys(state.extractedAgentData).length > 0 ? state.extractedAgentData : undefined,
+        })
+
+        if (multiAgentResponse.need_more_info) {
+          addChatMessage(
+            'assistant',
+            `I need more information about the agents you want to create. ${multiAgentResponse.missing_info || 'Please provide details about each agent and how they differ.'}`,
+          )
+          return
+        }
+
+        if (!multiAgentResponse.has_multi_agent) {
+          addChatMessage('assistant', "I couldn't detect multiple agents in your description. Switching to single agent mode.")
+          setState((prev) => ({ ...prev, isMultiAgentMode: false }))
+          return
+        }
+
+        setState((prev) => ({
+          ...prev,
+          multiAgentParseResponse: multiAgentResponse,
+          extractedAgentData: { ...prev.extractedAgentData, ...multiAgentResponse.common_attributes },
+        }))
+
+        // Extract keywords for all agents
+        await extractKeywordsForAllAgents(multiAgentResponse)
+
+        // Autofill tools for all agents
+        await autofillToolsForMultiAgent(multiAgentResponse)
+
+        addChatMessage(
+          'assistant',
+          `I've detected ${multiAgentResponse.agent_count} agents in your description. You can review the details and create the agents when ready.`,
+        )
+      } else {
+        // Handle single agent streaming parsing
+        const response = await parseUserInputStream({
+          user_input: state.userInput,
+          model_name: DEFAULT_MODEL,
+          temperature: DEFAULT_TEMPERATURE,
+          existing_field_values: Object.keys(state.extractedAgentData).length > 0 ? state.extractedAgentData : undefined,
+        })
+
+        const reader = response.body?.getReader()
+        const decoder = new TextDecoder()
+        let buffer = ''
+        const accumulatedFields: Record<string, any> = {}
+        let fieldUpdateReceived = false
+
+        if (reader) {
+          while (true) {
+            const { done, value } = await reader.read()
+            if (done) break
+
+            buffer += decoder.decode(value, { stream: true })
+
+            let eventEnd = buffer.indexOf('\n\n')
+            while (eventEnd > -1) {
+              const eventData = buffer.substring(0, eventEnd)
+              buffer = buffer.substring(eventEnd + 2)
+
+              if (processStreamEvent(eventData, accumulatedFields)) {
+                fieldUpdateReceived = true
+              }
+
+              eventEnd = buffer.indexOf('\n\n')
+            }
+          }
+        }
+
+        if (!fieldUpdateReceived) {
+          addChatMessage(
+            'assistant',
+            "I couldn't extract any information from your description. Please provide more specific details about what you want the agent to do.",
+          )
+          return
+        }
+
+        // Extract keywords if we have name and description
+        if (state.extractedAgentData.agent_name && state.extractedAgentData.description) {
+          try {
+            const keywordsResponse = await extractAgentKeywords({
+              agent_name: state.extractedAgentData.agent_name,
+              description: state.extractedAgentData.description,
+              model_name: DEFAULT_MODEL,
+              temperature: DEFAULT_TEMPERATURE,
+            })
+
+            setState((prev) => ({
+              ...prev,
+              extractedAgentData: { ...prev.extractedAgentData, keywords: keywordsResponse.keywords },
+            }))
+          } catch (error) {
+            console.warn('Error extracting keywords:', error)
+          }
+        }
+
+        // Autofill tools
+        await autofillTools()
+
+        // Load MCPHub recommendations
+        await loadMCPHubRecommendations()
+
+        addChatMessage(
+          'assistant',
+          "I've extracted the agent details from your description. You can review and modify them before creating the agent.",
+        )
+      }
+    } catch (error) {
+      console.error('Error processing user input:', error)
+      addChatMessage('assistant', "I'm sorry, I encountered an error processing your request. Please try again.")
+    } finally {
+      setState((prev) => ({ ...prev, isProcessing: false }))
+    }
+  }
+
+  const extractKeywordsForAllAgents = async (multiAgentResponse: IMultiAgentParseData) => {
+    try {
+      // Extract common keywords if needed
+      if (multiAgentResponse.common_attributes?.agent_name && multiAgentResponse.common_attributes?.description) {
+        const commonKeywords = await extractAgentKeywords({
+          agent_name: multiAgentResponse.common_attributes.agent_name,
+          description: multiAgentResponse.common_attributes.description,
+          model_name: DEFAULT_MODEL,
+          temperature: DEFAULT_TEMPERATURE,
+        })
+        multiAgentResponse.common_attributes.keywords = commonKeywords.keywords
+      }
+
+      // Extract keywords for variations
+      if (multiAgentResponse.agent_variations) {
+        await Promise.all(
+          multiAgentResponse.agent_variations.map(async (agent) => {
+            if (agent.agent_name && agent.description) {
+              const keywords = await extractAgentKeywords({
+                agent_name: agent.agent_name,
+                description: agent.description,
+                model_name: DEFAULT_MODEL,
+                temperature: DEFAULT_TEMPERATURE,
+              })
+              agent.keywords = keywords.keywords
+            } else {
+              agent.keywords = multiAgentResponse.common_attributes?.keywords || ['automation', 'helper', 'assistant']
+            }
+          }),
+        )
+      }
+
+      setState((prev) => ({ ...prev, multiAgentParseResponse: multiAgentResponse }))
+    } catch (error) {
+      console.warn('Error extracting keywords for multi-agent:', error)
+    }
+  }
+
+  const autofillTools = async () => {
+    if (!state.extractedAgentData.agent_name && !state.extractedAgentData.description) return
+
+    setState((prev) => ({ ...prev, isToolsAutofilling: true }))
+
+    try {
+      const toolsResponse = await autofillAgentField({
+        field_name: 'tools',
+        json_field: {
+          agent_name: state.extractedAgentData.agent_name || '',
+          description: state.extractedAgentData.description || '',
+          keywords: state.extractedAgentData.keywords || [],
+        },
+        existing_field_value: '',
+        return_tool_ids: true,
+      })
+
+      const suggestedTools = Array.isArray(toolsResponse.autofilled_value) ? toolsResponse.autofilled_value : []
+
       setState((prev) => ({
         ...prev,
-        extractedAgentData: { ...dummyAgentData, agent_name: 'Processed Dummy Agent', description: state.userInput },
+        extractedAgentData: { ...prev.extractedAgentData, tools: suggestedTools },
       }))
-      addChatMessage(
-        'agent',
-        `Extracted agent details (dummy). Name: ${dummyAgentData.agent_name}. Tools suggested: ${dummyAgentData.tools?.length}.`,
-      )
+    } catch (error) {
+      console.warn('Error autofilling tools:', error)
+    } finally {
+      setState((prev) => ({ ...prev, isToolsAutofilling: false }))
     }
-    // setState((prev) => ({ ...prev, userInput: '' })) // Keep user input for demo or clear as preferred
+  }
+
+  const autofillToolsForMultiAgent = async (multiAgentResponse: IMultiAgentParseData) => {
+    setState((prev) => ({ ...prev, isToolsAutofilling: true }))
+
+    try {
+      for (let i = 0; i < multiAgentResponse.agent_variations.length; i++) {
+        const agent = multiAgentResponse.agent_variations[i]
+
+        if (!agent.agent_name && !agent.description) continue
+
+        const agentKeywords =
+          agent.keywords && agent.keywords.length > 0 ? agent.keywords : multiAgentResponse.common_attributes.keywords || []
+
+        const toolsResponse = await autofillAgentField({
+          field_name: 'tools',
+          json_field: {
+            agent_name: agent.agent_name || multiAgentResponse.common_attributes.agent_name || '',
+            description: agent.description || multiAgentResponse.common_attributes.description || '',
+            keywords: agentKeywords,
+          },
+          existing_field_value: '',
+          return_tool_ids: true,
+        })
+
+        const suggestedTools = Array.isArray(toolsResponse.autofilled_value) ? toolsResponse.autofilled_value : []
+
+        multiAgentResponse.agent_variations[i].tools = suggestedTools
+      }
+
+      setState((prev) => ({ ...prev, multiAgentParseResponse: multiAgentResponse }))
+    } catch (error) {
+      console.warn('Error autofilling tools for multi-agent:', error)
+    } finally {
+      setState((prev) => ({ ...prev, isToolsAutofilling: false }))
+    }
+  }
+
+  const loadMCPHubRecommendations = async () => {
+    try {
+      const keywords = state.extractedAgentData.keywords || []
+
+      const mcpResponse = await autofillAgentField({
+        field_name: 'mcphub_recommended_tools',
+        json_field: { keywords },
+        existing_field_value: '',
+        return_tool_ids: false,
+      })
+
+      let recommendations: IMCPHubToolRecommendation[] = []
+
+      if (typeof mcpResponse.autofilled_value === 'string') {
+        try {
+          recommendations = JSON.parse(mcpResponse.autofilled_value)
+        } catch (e) {
+          console.warn('Error parsing MCPHub JSON:', e)
+        }
+      } else if (Array.isArray(mcpResponse.autofilled_value)) {
+        recommendations = mcpResponse.autofilled_value
+      }
+
+      setState((prev) => ({ ...prev, mcphubRecommendations: recommendations }))
+    } catch (error) {
+      console.warn('Error loading MCPHub recommendations:', error)
+    }
   }
 
   const handleCreateAgents = async () => {
-    addChatMessage('agent', 'Attempting to create agent(s) (dummy)...')
-    let createdCount = 0
-    let totalToCreate = 0
+    addChatMessage('assistant', 'Creating agent(s)...')
 
-    if (state.isMultiAgentMode && state.multiAgentParseResponse) {
-      totalToCreate = state.multiAgentParseResponse.agent_variations.length
-      createdCount = totalToCreate // Assume all created for dummy
-    } else if (!state.isMultiAgentMode && state.extractedAgentData.agent_name) {
-      totalToCreate = 1
-      createdCount = 1 // Assume created for dummy
-    }
+    try {
+      if (state.isMultiAgentMode && state.multiAgentParseResponse) {
+        // Create multiple agents
+        const agents = prepareMultiAgentDataForCreation()
+        const results: Array<{ success: boolean; name: string; error?: string }> = []
 
-    if (createdCount > 0) {
-      // addToast({ title: `Successfully created ${createdCount}/${totalToCreate} agent(s)! (dummy)`, color: 'success' })
-      console.log(`Successfully created ${createdCount}/${totalToCreate} agent(s)! (dummy)`)
-    } else {
-      // addToast({ title: `No agents to create. (dummy)`, color: 'primary' })
-      console.log(`No agents to create. (dummy)`)
+        for (const agentData of agents) {
+          try {
+            await createAgent(agentData)
+            results.push({ success: true, name: agentData.agent_name })
+          } catch (error) {
+            console.error('Error creating agent:', error)
+            results.push({
+              success: false,
+              name: agentData.agent_name,
+              error: error instanceof Error ? error.message : 'Unknown error',
+            })
+          }
+        }
+
+        const successCount = results.filter((r) => r.success).length
+        let message = `Created ${successCount} out of ${agents.length} agents:\n\n`
+        results.forEach((result, index) => {
+          message += `${index + 1}. ${result.name}: ${result.success ? '✅ Success' : '❌ Failed'}\n`
+        })
+
+        addChatMessage('assistant', message)
+
+        if (successCount > 0) {
+          setTimeout(() => handleReset(), 3000)
+        }
+      } else {
+        // Create single agent
+        const agentData = prepareSingleAgentDataForCreation()
+        await createAgent(agentData)
+
+        addChatMessage(
+          'assistant',
+          `Great! I've created your agent "${agentData.agent_name}" with ${agentData.tools.length} tools. You can now find it in the Agents list.`,
+        )
+        setTimeout(() => handleReset(), 3000)
+      }
+    } catch (error) {
+      console.error('Error creating agent(s):', error)
+      addChatMessage('assistant', 'There was an error creating your agent. Please try again.')
     }
-    addChatMessage('agent', `Created ${createdCount}/${totalToCreate} agent(s) (dummy).`)
-    handleReset()
+  }
+
+  const prepareSingleAgentDataForCreation = (): IAgentPayload => {
+    return {
+      agent_name: state.extractedAgentData.agent_name || '',
+      description: state.extractedAgentData.description || '',
+      agent_style: state.extractedAgentData.agent_style || 'Default',
+      on_status: state.extractedAgentData.on_status !== false,
+      tools: state.extractedAgentData.tools || [],
+      company_id: state.extractedAgentData.company_id || '',
+      keywords: state.extractedAgentData.keywords || [],
+    }
+  }
+
+  const prepareMultiAgentDataForCreation = (): IAgentPayload[] => {
+    if (!state.multiAgentParseResponse) return []
+
+    return state.multiAgentParseResponse.agent_variations.map((variation) => {
+      const commonAttrs = state.multiAgentParseResponse!.common_attributes
+
+      return {
+        agent_name: variation.agent_name || commonAttrs.agent_name || '',
+        description: variation.description || commonAttrs.description || '',
+        agent_style: variation.agent_style || commonAttrs.agent_style || 'Default',
+        on_status: variation.on_status !== false,
+        tools: variation.tools || [],
+        company_id: variation.company_id || commonAttrs.company_id || '',
+        keywords: variation.keywords || commonAttrs.keywords || [],
+      }
+    })
   }
 
   const canCreate = (): boolean => {
@@ -216,12 +488,18 @@ const AgentCreator: React.FC = () => {
     setState((prev) => ({
       ...prev,
       userInput: '',
-      extractedAgentData: { on_status: true, tools: [], ...dummyAgentData }, // Reset to dummy
-      multiAgentParseResponse: null, // Or dummyMultiAgentParseResponse if preferred on reset for multi-mode
-      mcphubRecommendations: [...dummyMCPHubRecommendations], // Reset to dummy
-      chatMessages: prev.chatMessages.some((msg) => msg.content === 'Form has been reset.')
-        ? prev.chatMessages
-        : [...prev.chatMessages, { id: generateId(), role: 'agent', content: 'Form has been reset.', timestamp: new Date().toISOString() }],
+      extractedAgentData: { on_status: true, tools: [] },
+      multiAgentParseResponse: null,
+      mcphubRecommendations: [],
+      chatMessages: [
+        ...prev.chatMessages,
+        {
+          id: generateId(),
+          role: 'assistant',
+          content: 'Form has been reset.',
+          timestamp: new Date().toISOString(),
+        },
+      ],
     }))
     setToolSearchTerm('')
     setMultiToolSearchTerms({})
@@ -248,7 +526,7 @@ const AgentCreator: React.FC = () => {
     <div className="container mx-auto max-w-5xl space-y-6 p-4">
       <header className="text-center">
         <h1 className="mb-2 text-3xl font-bold">Agent Creator</h1>
-        <p className="text-foreground-600">Describe your agent, and we'll help you set it up.</p>
+        <p className="text-foreground-600">Describe your agent in detail and our AI will extract the necessary information</p>
       </header>
 
       <Card>
@@ -259,54 +537,52 @@ const AgentCreator: React.FC = () => {
               <Switch
                 isSelected={state.isMultiAgentMode}
                 onValueChange={(val) => {
-                  addChatMessage('agent', `Switched to ${val ? 'Multi-Agent' : 'Single-Agent'} mode.`)
+                  addChatMessage('assistant', `Switched to ${val ? 'Multi-Agent' : 'Single-Agent'} mode.`)
                   setState((prev) => ({
                     ...prev,
                     isMultiAgentMode: val,
-                    extractedAgentData: { on_status: true, tools: [], ...(val ? {} : dummyAgentData) }, // Clear or set dummy
-                    multiAgentParseResponse: val ? dummyMultiAgentParseResponse : null, // Set or clear dummy
-                    userInput: '', // Clear user input on mode switch
-                    mcphubRecommendations: [...dummyMCPHubRecommendations], // Reset recs
+                    extractedAgentData: { on_status: true, tools: [] },
+                    multiAgentParseResponse: null,
+                    userInput: '',
+                    mcphubRecommendations: [],
                   }))
                 }}
                 size="lg"
                 startContent={<FilePlus />}
                 endContent={<Users />}
               >
-                Multi-Agent Mode
+                Multi-Agent Creation
               </Switch>
-              <Button isIconOnly variant="light" onPress={onFieldHelpModalOpen} title="Field Help">
+              <Button isIconOnly variant="light" onPress={onFieldHelpModalOpen} title="Available Fields">
                 <Info size={20} />
               </Button>
             </div>
           </div>
 
           <Textarea
-            label={
-              state.isMultiAgentMode
-                ? 'Describe common attributes and variations for multiple agents...'
-                : 'Describe the single agent you want to create...'
-            }
-            placeholder="e.g., A customer support agent that can answer questions about product X and escalate complex issues. It should use the FAQ tool and the ticketing tool."
+            label="Provide a detailed description of the agent you want to create..."
+            placeholder="e.g., Make me an agent that can manage my tasks and help solve statistical problems in a friendly manner"
             value={state.userInput}
             onValueChange={(val) => setState((prev) => ({ ...prev, userInput: val }))}
-            minRows={5}
-            maxRows={10}
+            minRows={4}
+            maxRows={8}
             className="mb-4"
             description={
               state.isMultiAgentMode
-                ? 'Tip: Clearly separate descriptions for different agent types or define commonalities first.'
+                ? 'Tip: Clearly describe multiple agents and how they differ from each other.'
                 : 'Be as detailed as possible for better extraction.'
             }
           />
           <div className="flex justify-end gap-3">
             <Button
-              color="primary"
-              onClick={handleProcessUserInput}
-              disabled={!state.userInput.trim()} // Only disable if no input
+              color="success"
+              variant="faded"
+              disabled={!state.userInput.trim() || state.isProcessing}
               startContent={<Sparkles />}
+              onPress={handleProcessUserInput}
+              isLoading={state.isProcessing}
             >
-              Extract & Autofill (Dummy)
+              Parse
             </Button>
           </div>
         </CardBody>
@@ -324,6 +600,7 @@ const AgentCreator: React.FC = () => {
             availableTools={availableToolsFromStore}
           />
         )}
+
       {state.isMultiAgentMode && state.multiAgentParseResponse && (
         <MultiAgentPreview
           multiAgentParseResponse={state.multiAgentParseResponse}
@@ -353,7 +630,9 @@ const AgentCreator: React.FC = () => {
             {state.chatMessages.map((msg, i) => (
               <div
                 key={i}
-                className={`rounded-md p-2 text-sm ${msg.role === 'user' ? 'bg-primary-50 text-primary-700' : 'bg-content2 text-foreground-700'}`}
+                className={`rounded-md p-2 text-sm ${
+                  msg.role === 'user' ? 'bg-primary-50 text-primary-700' : 'bg-content2 text-foreground-700'
+                }`}
               >
                 <span className="font-semibold capitalize">{msg.role}: </span>
                 {msg.content}
@@ -372,10 +651,10 @@ const AgentCreator: React.FC = () => {
           startContent={<CheckCircle />}
           className="w-full min-w-[150px] sm:w-auto"
         >
-          Create Agent(s) (Dummy)
+          Create Agent(s)
         </Button>
         <Button color="danger" variant="ghost" onClick={handleReset} startContent={<Trash2 />} className="w-full sm:w-auto">
-          Reset Form
+          Reset
         </Button>
       </div>
 
@@ -388,4 +667,8 @@ const AgentCreator: React.FC = () => {
   )
 }
 
-export default AgentCreator
+const AgentCreatorPage: React.FC = () => {
+  return <AgentCreator />
+}
+
+export default AgentCreatorPage
