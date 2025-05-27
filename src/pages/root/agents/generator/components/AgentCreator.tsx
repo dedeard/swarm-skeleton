@@ -16,8 +16,6 @@ import MCPHubRecommendations from './MCPHubRecommendations'
 import MultiAgentPreview from './MultiAgentPreview'
 import SingleAgentPreview from './SingleAgentPreview'
 
-const generateId = () => Math.random().toString(36).substr(2, 9)
-
 // Default model settings (matching the example)
 const DEFAULT_MODEL = 'openai/gpt-4o-mini'
 const DEFAULT_TEMPERATURE = 0
@@ -81,7 +79,7 @@ const AgentCreator: React.FC = () => {
   const addChatMessage = useCallback((role: IChatMessage['role'], content: string) => {
     setState((prev) => ({
       ...prev,
-      chatMessages: [...prev.chatMessages, { id: generateId(), role, content, timestamp: new Date().toISOString() }],
+      chatMessages: [...prev.chatMessages, { role, content, timestamp: new Date().toISOString() }],
     }))
   }, [])
 
@@ -494,7 +492,6 @@ const AgentCreator: React.FC = () => {
       chatMessages: [
         ...prev.chatMessages,
         {
-          id: generateId(),
           role: 'assistant',
           content: 'Form has been reset.',
           timestamp: new Date().toISOString(),

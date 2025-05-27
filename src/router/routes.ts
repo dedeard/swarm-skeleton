@@ -43,16 +43,16 @@ const agentsRoutes: RouteObject[] = [
 /**
  * Tools route configuration
  */
-const toolsRoutes: RouteObject[] = [
-  {
-    path: 'create',
-    lazy: () => import('@/pages/root/tools/create/page'),
-  },
-  {
-    path: ':toolId/edit',
-    lazy: () => import('@/pages/root/tools/edit/page'),
-  },
-]
+// const toolsRoutes: RouteObject[] = [
+//   {
+//     path: 'create',
+//     lazy: () => import('@/pages/root/tools/create/page'),
+//   },
+//   {
+//     path: ':toolId/edit',
+//     lazy: () => import('@/pages/root/tools/edit/page'),
+//   },
+// ]
 
 /**
  * Protected Routes Configuration
@@ -73,11 +73,11 @@ const routes: RouteObject[] = [
         lazy: () => import('@/pages/root/agents/page'),
         children: agentsRoutes,
       },
-      {
-        path: 'tools',
-        lazy: () => import('@/pages/root/tools/page'),
-        children: toolsRoutes,
-      },
+      // {
+      //   path: 'tools',
+      //   lazy: () => import('@/pages/root/tools/page'),
+      //   children: toolsRoutes,
+      // },
     ],
   },
 ]
