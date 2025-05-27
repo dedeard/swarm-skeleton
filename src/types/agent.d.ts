@@ -95,7 +95,6 @@ export interface IKeywordsResponse {
 }
 
 export interface IChatMessage {
-  id: string // Add an ID for React keys
   role: 'user' | 'assistant' | 'system' | string
   content: string
   timestamp: string

@@ -15,7 +15,7 @@ export const useCustomBlockParser = (markdownContent: string) => {
     // Regex for complete blocks
     const completeBlockRegex = /!#block#!\s*(\{[\s\S]*?\})\s*!#\/block#!/gs
     // Regex for incomplete blocks (missing closing tag)
-    const incompleteBlockRegex = /!#block#!\s*(\{[\s\S]*?)(?:!#\/block#!|$)/gs
+    // const incompleteBlockRegex = /!#block#!\s*(\{[\s\S]*?)(?:!#\/block#!|$)/gs
 
     const newCustomBlockDataMap: Record<string, CustomBlockData> = {}
     let blockIdCounter = 0

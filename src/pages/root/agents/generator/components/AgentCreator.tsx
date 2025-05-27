@@ -136,8 +136,8 @@ const AgentCreator: React.FC = () => {
     availableFieldsInfo: { ...dummyAvailableFieldsInfo },
     mcphubRecommendations: [...dummyMCPHubRecommendations],
     chatMessages: [
-      { id: generateId(), role: 'user', content: 'Initial dummy user message.', timestamp: new Date().toISOString() },
-      { id: generateId(), role: 'agent', content: 'Initial dummy agent response.', timestamp: new Date().toISOString() },
+      { role: 'user', content: 'Initial dummy user message.', timestamp: new Date().toISOString() },
+      { role: 'agent', content: 'Initial dummy agent response.', timestamp: new Date().toISOString() },
     ],
   })
 
@@ -350,9 +350,9 @@ const AgentCreator: React.FC = () => {
             </h3>
           </CardHeader>
           <CardBody className="max-h-60 space-y-2 overflow-y-auto pr-2">
-            {state.chatMessages.map((msg) => (
+            {state.chatMessages.map((msg, i) => (
               <div
-                key={msg.id}
+                key={i}
                 className={`rounded-md p-2 text-sm ${msg.role === 'user' ? 'bg-primary-50 text-primary-700' : 'bg-content2 text-foreground-700'}`}
               >
                 <span className="font-semibold capitalize">{msg.role}: </span>
