@@ -16,8 +16,6 @@ export interface IAgentPayload {
   agent_style: string
   on_status: boolean
   tools: Array<string>
-  company_id: string
-  keywords?: string[] // Added keywords
 }
 
 export type IChatRole = 'user' | 'assistant' | 'system' | string

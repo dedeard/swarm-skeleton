@@ -28,7 +28,10 @@ interface AgentFormProps {
 }
 
 const AgentForm: React.FC<AgentFormProps> = ({ agent }) => {
-  const { tools: allTools } = useToolStore()
+  const { tools: allTools, fetchTools } = useToolStore()
+  useEffect(() => {
+    fetchTools()
+  }, [])
   const [loading, setLoading] = useState(false)
   const [isAutofillingStyle, setIsAutofillingStyle] = useState(false)
   const { addAgent, editAgent } = useAgentStore()
@@ -224,6 +227,7 @@ const AgentForm: React.FC<AgentFormProps> = ({ agent }) => {
 
           <Input
             label="Agent Name"
+            labelPlacement="outside"
             placeholder="e.g., Customer Support Bot"
             value={agentNameValue}
             onChange={(e) => setValue('agent_name', e.target.value, { shouldValidate: true })}
@@ -235,6 +239,7 @@ const AgentForm: React.FC<AgentFormProps> = ({ agent }) => {
 
           <Textarea
             label="Description"
+            labelPlacement="outside"
             placeholder="Describe what this agent does"
             minRows={4}
             maxRows={8}
@@ -246,16 +251,13 @@ const AgentForm: React.FC<AgentFormProps> = ({ agent }) => {
             className="w-full"
           />
 
-          <div className="flex flex-col gap-1">
-            <div className="flex items-center justify-between">
-              <label htmlFor="agent_style_textarea" className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Agent Style / Instructions
-              </label>
+          <div className="relative flex flex-col gap-1">
+            <div className="absolute right-0 top-0 z-10">
               <Button
                 type="button"
                 size="sm"
                 variant="light"
-                onClick={handleAutofillAgentStyle}
+                onPress={handleAutofillAgentStyle}
                 isLoading={isAutofillingStyle}
                 isDisabled={!agentNameValue || isAutofillingStyle}
                 className="text-primary-500 hover:text-primary-600 dark:text-primary-400 dark:hover:text-primary-300"
@@ -266,6 +268,8 @@ const AgentForm: React.FC<AgentFormProps> = ({ agent }) => {
             </div>
             <Textarea
               id="agent_style_textarea" // ID for scrolling ref
+              labelPlacement="outside"
+              label="Agent Style / Instructions"
               ref={agentStyleTextareaRef} // Attach ref
               placeholder="e.g., conversational, or provide specific instructions. Click Autofill to generate."
               minRows={4}
@@ -283,6 +287,8 @@ const AgentForm: React.FC<AgentFormProps> = ({ agent }) => {
 
           <Select
             label="Tools"
+            labelPlacement="outside"
+            placeholder="Select tools for this agent"
             selectionMode="multiple"
             // @ts-expect-error
             selectedKeys={toolsValue ?? []}
