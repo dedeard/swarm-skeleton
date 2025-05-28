@@ -206,21 +206,21 @@ export const useMultiAgentLogic = () => {
 
       // Create multiple agents
       const agents = prepareMultiAgentDataForCreation()
-      const results: Array<{ success: boolean; name: string; error?: string }> = []
-
-      for (const agentData of agents) {
-        try {
-          await agentStore.addAgent(agentData)
-          results.push({ success: true, name: agentData.agent_name })
-        } catch (error) {
-          console.error('Error creating agent:', error)
-          results.push({
-            success: false,
-            name: agentData.agent_name,
-            error: error instanceof Error ? error.message : 'Unknown error',
-          })
-        }
-      }
+      const results = await Promise.all(
+        agents.map(async (agentData) => {
+          try {
+            await agentStore.addAgent(agentData)
+            return { success: true, name: agentData.agent_name }
+          } catch (error) {
+            console.error('Error creating agent:', error)
+            return {
+              success: false,
+              name: agentData.agent_name,
+              error: error instanceof Error ? error.message : 'Unknown error',
+            }
+          }
+        }),
+      )
 
       const successCount = results.filter((r) => r.success).length
       let message = `Created ${successCount} out of ${agents.length} agents:\n\n`
