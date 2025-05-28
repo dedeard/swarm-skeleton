@@ -64,85 +64,56 @@ const AgentCreator: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto max-w-5xl space-y-6 p-4">
+    <div className="container relative mx-auto max-w-5xl space-y-6 p-4">
       <header className="text-center">
         <h1 className="mb-2 text-3xl font-bold">Agent Creator</h1>
         <p className="text-foreground-600">Describe your agent in detail and our AI will extract the necessary information</p>
       </header>
 
-      <div className="flex items-center justify-between">
+      <div className="absolute right-3 flex items-center justify-between">
         <div className="flex-1" />
         <Button isIconOnly variant="light" onPress={onFieldHelpModalOpen} title="Available Fields">
           <Info size={20} />
         </Button>
       </div>
 
-      <Tabs
-        aria-label="Agent Creation Mode"
-        selectedKey={selectedTab}
-        onSelectionChange={handleTabChange}
-        variant="underlined"
-        classNames={{
-          tabList: 'gap-6 w-full relative rounded-none p-0 border-b border-divider',
-          cursor: 'w-full bg-primary',
-          tab: 'max-w-fit px-0 h-12',
-          tabContent: 'group-data-[selected=true]:text-primary',
-        }}
-      >
-        <Tab
-          key="single"
-          title={
-            <div className="flex items-center space-x-2">
-              <span>Single Agent</span>
-            </div>
-          }
-        >
-          <div className="mt-6">
-            <SingleAgentCreator
-              userInput={singleAgentLogic.userInput}
-              extractedAgentData={singleAgentLogic.extractedAgentData}
-              mcphubRecommendations={singleAgentLogic.mcphubRecommendations}
-              chatMessages={singleAgentLogic.chatMessages}
-              isProcessing={singleAgentLogic.isProcessing}
-              isToolsAutofilling={singleAgentLogic.isToolsAutofilling}
-              toolSearchTerm={singleAgentLogic.toolSearchTerm}
-              availableTools={singleAgentLogic.availableTools}
-              setUserInput={singleAgentLogic.setUserInput}
-              setToolSearchTerm={singleAgentLogic.setToolSearchTerm}
-              handleProcessUserInput={singleAgentLogic.handleProcessUserInput}
-              handleCreateAgent={singleAgentLogic.handleCreateAgent}
-              handleReset={singleAgentLogic.handleReset}
-              handleToolSelectionChange={singleAgentLogic.handleToolSelectionChange}
-              canCreate={singleAgentLogic.canCreate}
-            />
-          </div>
+      <Tabs aria-label="Agent Creation Mode" selectedKey={selectedTab} onSelectionChange={handleTabChange}>
+        <Tab key="single" title={<span>Single Agent</span>}>
+          <SingleAgentCreator
+            userInput={singleAgentLogic.userInput}
+            extractedAgentData={singleAgentLogic.extractedAgentData}
+            mcphubRecommendations={singleAgentLogic.mcphubRecommendations}
+            chatMessages={singleAgentLogic.chatMessages}
+            isProcessing={singleAgentLogic.isProcessing}
+            isToolsAutofilling={singleAgentLogic.isToolsAutofilling}
+            toolSearchTerm={singleAgentLogic.toolSearchTerm}
+            availableTools={singleAgentLogic.availableTools}
+            setUserInput={singleAgentLogic.setUserInput}
+            setToolSearchTerm={singleAgentLogic.setToolSearchTerm}
+            handleProcessUserInput={singleAgentLogic.handleProcessUserInput}
+            handleCreateAgent={singleAgentLogic.handleCreateAgent}
+            handleReset={singleAgentLogic.handleReset}
+            handleToolSelectionChange={singleAgentLogic.handleToolSelectionChange}
+            canCreate={singleAgentLogic.canCreate}
+          />
         </Tab>
-        <Tab
-          key="multiple"
-          title={
-            <div className="flex items-center space-x-2">
-              <span>Multiple Agents</span>
-            </div>
-          }
-        >
-          <div className="mt-6">
-            <MultiAgentCreator
-              userInput={multiAgentLogic.userInput}
-              multiAgentParseResponse={multiAgentLogic.multiAgentParseResponse}
-              chatMessages={multiAgentLogic.chatMessages}
-              isProcessing={multiAgentLogic.isProcessing}
-              isToolsAutofilling={multiAgentLogic.isToolsAutofilling}
-              multiToolSearchTerms={multiAgentLogic.multiToolSearchTerms}
-              availableTools={multiAgentLogic.availableTools}
-              setUserInput={multiAgentLogic.setUserInput}
-              setMultiToolSearchTerm={multiAgentLogic.setMultiToolSearchTerm}
-              handleProcessUserInput={multiAgentLogic.handleProcessUserInput}
-              handleCreateAgents={multiAgentLogic.handleCreateAgents}
-              handleReset={multiAgentLogic.handleReset}
-              handleToolSelectionChange={multiAgentLogic.handleToolSelectionChange}
-              canCreate={multiAgentLogic.canCreate}
-            />
-          </div>
+        <Tab key="multiple" title={<span>Multiple Agents</span>}>
+          <MultiAgentCreator
+            userInput={multiAgentLogic.userInput}
+            multiAgentParseResponse={multiAgentLogic.multiAgentParseResponse}
+            chatMessages={multiAgentLogic.chatMessages}
+            isProcessing={multiAgentLogic.isProcessing}
+            isToolsAutofilling={multiAgentLogic.isToolsAutofilling}
+            multiToolSearchTerms={multiAgentLogic.multiToolSearchTerms}
+            availableTools={multiAgentLogic.availableTools}
+            setUserInput={multiAgentLogic.setUserInput}
+            setMultiToolSearchTerm={multiAgentLogic.setMultiToolSearchTerm}
+            handleProcessUserInput={multiAgentLogic.handleProcessUserInput}
+            handleCreateAgents={multiAgentLogic.handleCreateAgents}
+            handleReset={multiAgentLogic.handleReset}
+            handleToolSelectionChange={multiAgentLogic.handleToolSelectionChange}
+            canCreate={multiAgentLogic.canCreate}
+          />
         </Tab>
       </Tabs>
 
@@ -155,8 +126,4 @@ const AgentCreator: React.FC = () => {
   )
 }
 
-const AgentCreatorPage: React.FC = () => {
-  return <AgentCreator />
-}
-
-export default AgentCreatorPage
+export default AgentCreator

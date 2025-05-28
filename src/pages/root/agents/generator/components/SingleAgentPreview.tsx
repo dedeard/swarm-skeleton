@@ -5,7 +5,7 @@ import React from 'react'
 import ToolSelector from './ToolSelector'
 
 interface SingleAgentPreviewProps {
-  extractedAgentData: Partial<IAgentPayload>
+  extractedAgentData: Partial<IAgentPayload & { keywords?: string[] }>
   toolSearchTerm: string
   onToolSearchTermChange: (term: string) => void
   onToolSelectionChange: (tools: string[]) => void
@@ -28,7 +28,7 @@ const SingleAgentPreview: React.FC<SingleAgentPreviewProps> = ({
   }
 
   return (
-    <Card className="mt-4">
+    <Card shadow="none" className="mt-4 border dark:border-neutral-800">
       <CardHeader>
         <h3 className="text-xl font-semibold">Agent Preview</h3>
       </CardHeader>

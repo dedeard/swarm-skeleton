@@ -1,6 +1,6 @@
 import { IChatMessage, IMultiAgentParseData } from '@/types/agent'
 import { ITool } from '@/types/tool'
-import { Button, Card, CardBody } from '@heroui/react'
+import { Button } from '@heroui/react'
 import { CheckCircle, Trash2 } from 'lucide-react'
 import React from 'react'
 import AgentDescriptionForm from './AgentDescriptionForm'
@@ -46,17 +46,13 @@ const MultiAgentCreator: React.FC<MultiAgentCreatorProps> = ({
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardBody className="p-6">
-          <AgentDescriptionForm
-            userInput={userInput}
-            onUserInputChange={setUserInput}
-            onSubmit={handleProcessUserInput}
-            isProcessing={isProcessing}
-            isMultiAgent={true}
-          />
-        </CardBody>
-      </Card>
+      <AgentDescriptionForm
+        userInput={userInput}
+        onUserInputChange={setUserInput}
+        onSubmit={handleProcessUserInput}
+        isProcessing={isProcessing}
+        isMultiAgent={true}
+      />
 
       {hasMultiAgentData && (
         <MultiAgentPreview
@@ -74,14 +70,14 @@ const MultiAgentCreator: React.FC<MultiAgentCreatorProps> = ({
         <Button
           color="success"
           variant="solid"
-          onClick={handleCreateAgents}
+          onPress={handleCreateAgents}
           disabled={!canCreate()}
           startContent={<CheckCircle />}
           className="w-full min-w-[150px] sm:w-auto"
         >
           Create Agents
         </Button>
-        <Button color="danger" variant="ghost" onClick={handleReset} startContent={<Trash2 />} className="w-full sm:w-auto">
+        <Button color="danger" variant="ghost" onPress={handleReset} startContent={<Trash2 />} className="w-full sm:w-auto">
           Reset
         </Button>
       </div>

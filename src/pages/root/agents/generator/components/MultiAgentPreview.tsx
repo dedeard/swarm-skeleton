@@ -25,7 +25,7 @@ const MultiAgentPreview: React.FC<MultiAgentPreviewProps> = ({
 
   return (
     <div className="mt-4 space-y-6">
-      <Card>
+      <Card shadow="none" className="border dark:border-neutral-800">
         <CardHeader>
           <h3 className="text-xl font-semibold">Common Attributes</h3>
         </CardHeader>
@@ -59,7 +59,7 @@ const MultiAgentPreview: React.FC<MultiAgentPreviewProps> = ({
       </Card>
       <h3 className="text-xl font-semibold">Agent Variations ({agent_variations.length})</h3>
       {agent_variations.map((variation: IAgentVariation, index: number) => (
-        <Card key={index} className="mb-4">
+        <Card key={index} shadow="none" className="mb-4 border dark:border-neutral-800">
           <CardHeader>
             <h4 className="text-lg font-semibold">
               Agent Variation {index + 1}:{' '}

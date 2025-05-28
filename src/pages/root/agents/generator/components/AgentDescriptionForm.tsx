@@ -18,7 +18,7 @@ const AgentDescriptionForm: React.FC<AgentDescriptionFormProps> = ({
   isMultiAgent = false,
 }) => {
   return (
-    <div className="space-y-4">
+    <div>
       <Textarea
         label="Provide a detailed description of the agent you want to create..."
         placeholder={
@@ -39,13 +39,13 @@ const AgentDescriptionForm: React.FC<AgentDescriptionFormProps> = ({
       <div className="flex justify-end">
         <Button
           color="success"
-          variant="faded"
+          variant="flat"
           disabled={!userInput.trim() || isProcessing}
           startContent={<Sparkles />}
           onPress={onSubmit}
           isLoading={isProcessing}
         >
-          Parse
+          Generate
         </Button>
       </div>
     </div>

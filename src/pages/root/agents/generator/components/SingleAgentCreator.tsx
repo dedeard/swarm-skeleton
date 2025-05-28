@@ -1,6 +1,6 @@
 import { IAgentPayload, IChatMessage, IMCPHubToolRecommendation } from '@/types/agent'
 import { ITool } from '@/types/tool'
-import { Button, Card, CardBody } from '@heroui/react'
+import { Button } from '@heroui/react'
 import { CheckCircle, Trash2 } from 'lucide-react'
 import React from 'react'
 import AgentDescriptionForm from './AgentDescriptionForm'
@@ -50,17 +50,15 @@ const SingleAgentCreator: React.FC<SingleAgentCreatorProps> = ({
 
   return (
     <div className="space-y-6">
-      <Card>
-        <CardBody className="p-6">
-          <AgentDescriptionForm
-            userInput={userInput}
-            onUserInputChange={setUserInput}
-            onSubmit={handleProcessUserInput}
-            isProcessing={isProcessing}
-            isMultiAgent={false}
-          />
-        </CardBody>
-      </Card>
+      <AgentDescriptionForm
+        userInput={userInput}
+        onUserInputChange={setUserInput}
+        onSubmit={handleProcessUserInput}
+        isProcessing={isProcessing}
+        isMultiAgent={false}
+      />
+
+      <ProcessingLog chatMessages={chatMessages} />
 
       {hasExtractedData && (
         <SingleAgentPreview
@@ -73,8 +71,6 @@ const SingleAgentCreator: React.FC<SingleAgentCreatorProps> = ({
       )}
 
       {(mcphubRecommendations || []).length > 0 && <MCPHubRecommendations recommendations={mcphubRecommendations} />}
-
-      <ProcessingLog chatMessages={chatMessages} />
 
       <div className="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
         <Button
