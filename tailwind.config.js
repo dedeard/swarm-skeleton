@@ -1,5 +1,4 @@
 import { heroui } from '@heroui/theme'
-import defaultTheme from 'tailwindcss/defaultTheme'
 
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -13,9 +12,9 @@ export default {
   darkMode: 'class',
   theme: {
     extend: {
-      fontFamily: {
-        sans: ['Lato', ...defaultTheme.fontFamily.sans],
-      },
+      // fontFamily: {
+      //   sans: ['Lato', ...defaultTheme.fontFamily.sans],
+      // },
       colors: {
         primary: {
           50: '#ecfdf5',
@@ -36,18 +35,18 @@ export default {
   plugins: [
     heroui({
       addCommonColors: true,
-      layout: {
-        radius: {
-          small: '2px', // rounded-small
-          medium: '4px', // rounded-medium
-          large: '6px', // rounded-large
-        },
-        borderWidth: {
-          small: '1px', // border-small
-          medium: '1px', // border-medium
-          large: '2px', // border-large
-        },
-      },
+      // layout: {
+      //   radius: {
+      //     small: '2px', // rounded-small
+      //     medium: '4px', // rounded-medium
+      //     large: '6px', // rounded-large
+      //   },
+      //   borderWidth: {
+      //     small: '1px', // border-small
+      //     medium: '1px', // border-medium
+      //     large: '2px', // border-large
+      //   },
+      // },
     }),
     require('@tailwindcss/typography'),
   ],

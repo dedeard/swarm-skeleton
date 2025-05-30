@@ -13,7 +13,7 @@ const StreamingMessageDisplay: React.FC<StreamingMessageDisplayProps> = memo(({ 
   return (
     <div className={cn('mb-3 flex w-full justify-start', className)}>
       <div
-        className="whitespace-pre-wrap break-words px-4 py-2 text-gray-800 dark:text-gray-100"
+        className="w-10/12 whitespace-pre-wrap break-words rounded-medium border border-primary-500/40 bg-white px-4 py-2 text-gray-800 dark:bg-black dark:text-gray-100"
         role="log"
         aria-live="polite"
         aria-label="Streaming message"
