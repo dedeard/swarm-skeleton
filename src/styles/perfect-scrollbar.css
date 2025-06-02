@@ -21,7 +21,7 @@
   -webkit-transition:
     background-color 0.2s linear,
     opacity 0.2s linear;
-  height: 15px;
+  height: 6px;
   /* there must be 'bottom' or 'top' for ps__rail-x */
   bottom: 0px;
   /* please don't change 'position' */
@@ -37,7 +37,7 @@
   -webkit-transition:
     background-color 0.2s linear,
     opacity 0.2s linear;
-  width: 8px;
+  width: 6px;
   /* there must be 'right' or 'left' for ps__rail-y */
   right: 0;
   /* please don't change 'position' */
@@ -83,7 +83,6 @@
     height 0.2s ease-in-out;
   height: 6px;
   /* there must be 'bottom' for ps__thumb-x */
-  bottom: 2px;
   /* please don't change 'position' */
   position: absolute;
 }
@@ -99,7 +98,6 @@
     width 0.2s ease-in-out;
   width: 6px;
   /* there must be 'right' for ps__thumb-y */
-  right: 2px;
   /* please don't change 'position' */
   position: absolute;
 }

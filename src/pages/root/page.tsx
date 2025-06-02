@@ -1,4 +1,5 @@
 import { ChatProvider } from '@/contexts/ChatContext'
+import { ChatUIProvider } from '@/contexts/ChatUIContext'
 import React from 'react'
 import { Outlet } from 'react-router-dom'
 import Chat from './components/Chat'
@@ -15,8 +16,10 @@ export const Component: React.FC = () => {
         }}
       />
       <ChatProvider>
-        <Outlet />
-        <Chat />
+        <ChatUIProvider>
+          <Outlet />
+          <Chat />
+        </ChatUIProvider>
       </ChatProvider>
     </>
   )

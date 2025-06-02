@@ -14,7 +14,7 @@ const Navbar: React.FC = () => {
   const agentId = searchParams.get('agent')
   const url = useDynamicUrl('/agents')
   return (
-    <div className="relative z-10 h-16 border-b border-neutral-200 bg-white dark:border-neutral-800 dark:bg-neutral-900">
+    <div className="relative z-10 h-16">
       <div className="flex h-full items-center justify-center px-3">
         <div className="flex flex-1 items-center gap-3">
           {!sidebarOpen && (

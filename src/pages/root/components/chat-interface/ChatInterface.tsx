@@ -1,12 +1,17 @@
 import { useChatContext } from '@/contexts/ChatContext'
-import { Loader2Icon, SendIcon } from 'lucide-react'
+import { useChatUIContext } from '@/contexts/ChatUIContext'
+import { cn } from '@heroui/theme'
+import { HomeIcon, Loader2Icon, MicIcon, SendIcon, UploadIcon, XIcon } from 'lucide-react'
 import React, { useState } from 'react'
+import { Link } from 'react-router-dom'
+import ActionButton from './ActionButton'
 import ChatTextArea from './ChatTextArea'
 import SubmitButton from './SubmitButton'
 import { suggestions } from './suggestions'
 
 const ChatInterface: React.FC = () => {
   const { agent, localChats, isSendingMessage, handleSendMessage } = useChatContext()
+  const chatUiStore = useChatUIContext()
 
   const [inputValue, setInputValue] = useState('')
 
@@ -39,10 +44,35 @@ const ChatInterface: React.FC = () => {
   }
 
   return (
-    <div className="border-t bg-neutral-100 p-3 dark:border-neutral-800 dark:bg-neutral-900">
-      <div className="mx-auto flex w-full max-w-2xl flex-col gap-3">
+    <div className="px-3">
+      <div className="relative top-px mx-auto flex w-full max-w-2xl items-end space-x-1">
+        <button className="block rounded-t border border-primary-500/30 bg-black px-3 py-2 text-sm font-semibold uppercase">Swarm</button>
+        {chatUiStore.agents.map((agent, i) => (
+          <div key={i} className="relative">
+            <Link
+              to={`/?agent=${agent.agent_id}`}
+              className={cn(
+                'flex max-w-32 items-center gap-1 rounded-t border border-primary-500/30 px-2 py-1 pr-6 text-xs',
+                chatUiStore.activeIndex === i ? 'bg-primary-600' : 'bg-black hover:bg-primary-500/5',
+              )}
+            >
+              <div className="w-4">
+                <HomeIcon className="block" size={12} />
+              </div>
+              <span className="block truncate">{agent.agent_name}</span>
+            </Link>
+            <button
+              onClick={() => chatUiStore.closeByIndex(i)}
+              className="absolute right-2 top-1/2 z-10 -translate-y-1/2 cursor-pointer text-xs hover:text-red-600"
+            >
+              <XIcon size={12} />
+            </button>
+          </div>
+        ))}
+      </div>
+      <div className="mx-auto flex w-full max-w-2xl flex-col rounded-tr-medium border border-b-0 border-primary-500/30 bg-black pt-3">
         {!inputValue.trim().length && !localChats.length && (
-          <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+          <div className="grid grid-cols-1 gap-2 p-3 pt-0 md:grid-cols-2">
             {suggestions.map((suggestion, index) => (
               <button
                 key={index}
@@ -55,17 +85,7 @@ const ChatInterface: React.FC = () => {
             ))}
           </div>
         )}
-        <div className="flex items-end space-x-2 rounded-2xl border-2 border-primary-600 bg-transparent p-2 shadow-lg">
-          {/* {onUploadFile && (
-            <ActionButton
-              ariaLabel="Upload file"
-              icon={<UploadIcon size={22} strokeWidth={2} />}
-              onClick={onUploadFile}
-              disabled={isEffectivelyDisabled}
-              iconColorClass="text-primary-500"
-              hoverIconColorClass="hover:text-primary-600"
-            />
-          )} */}
+        <div className="relative rounded-medium bg-transparent shadow-lg">
           <ChatTextArea
             value={inputValue}
             onChange={handleInputChange}
@@ -74,23 +94,32 @@ const ChatInterface: React.FC = () => {
             disabled={isEffectivelyDisabled}
             isLoading={isSendingMessage}
           />
-          {/* {onVoiceInput && (
+
+          <div className="flex w-full justify-between p-3 pt-0">
             <ActionButton
-              ariaLabel="Voice input"
-              icon={<MicIcon size={22} strokeWidth={2} />}
-              onClick={onVoiceInput}
+              ariaLabel="Upload file"
+              icon={<UploadIcon size={22} strokeWidth={2} />}
               disabled={isEffectivelyDisabled}
               iconColorClass="text-primary-500"
               hoverIconColorClass="hover:text-primary-600"
             />
-          )} */}
-          <SubmitButton
-            onClick={handleSend}
-            disabled={isSendDisabled}
-            isLoading={isSendingMessage}
-            LoadingIcon={Loader2Icon}
-            SendIcon={SendIcon}
-          />
+            <div className="flex items-center gap-3">
+              <ActionButton
+                ariaLabel="Voice input"
+                icon={<MicIcon size={22} strokeWidth={2} />}
+                disabled={isEffectivelyDisabled}
+                iconColorClass="text-primary-500"
+                hoverIconColorClass="hover:text-primary-600"
+              />
+              <SubmitButton
+                onClick={handleSend}
+                disabled={isSendDisabled}
+                isLoading={isSendingMessage}
+                LoadingIcon={Loader2Icon}
+                SendIcon={SendIcon}
+              />
+            </div>
+          </div>
         </div>
       </div>
     </div>
