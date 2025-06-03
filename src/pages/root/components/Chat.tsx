@@ -21,7 +21,7 @@ const Chat: React.FC<React.PropsWithChildren> = () => {
         <Navbar />
         <PerfectScrollbar className="h-full flex-1 overflow-hidden">
           {!localChats.length && (
-            <section className="mx-auto max-w-2xl py-8">
+            <section className="mx-auto max-w-2xl px-3 py-8">
               <Message />
               <EnhancedAuth skipable />
             </section>

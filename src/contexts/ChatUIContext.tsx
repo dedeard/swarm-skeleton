@@ -10,6 +10,7 @@ interface ChatUIContextType {
   agents: IAgent[]
   activeIndex?: number
   active?: IAgent
+
   closeByIndex: (index: number) => void
 }
 
@@ -26,8 +27,15 @@ export const ChatUIProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   // Effect to sync agents with the URL search parameter
   useEffect(() => {
+    if (!agentId) {
+      // This is where activeIndex remains undefined if the page is loaded without an agent.
+      setActiveIndex(undefined)
+      return
+    }
+
     // Check if the agent is already in the active list. If so, just set it as active.
     const existingAgentIndex = agents.findIndex((agent) => agent.agent_id === agentId)
+
     if (existingAgentIndex !== -1) {
       if (activeIndex !== existingAgentIndex) {
         setActiveIndex(existingAgentIndex)

@@ -12,7 +12,7 @@ interface ChatMessagesListProps {
 const ChatMessagesList: React.FC<ChatMessagesListProps> = ({ messagesEndRef }) => {
   const { localChats: chats, isSendingMessage, status, streamMessage } = useChatContext()
   return (
-    <div className="w-full p-3">
+    <div className="h-full w-full p-3">
       {!chats.length && <ChatPlaceholder />}
       <div className="mx-auto w-full max-w-2xl">
         {chats.map((chat, index) => (

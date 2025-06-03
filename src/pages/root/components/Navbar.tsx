@@ -1,6 +1,5 @@
 import ProfileDropdown from '@/components/layouts/ProfileDropdown'
 import ThemeToggle from '@/components/layouts/ThemeToggle'
-import SwarmTextGradient from '@/components/ui/SwarmTextGradient'
 import { useLayoutContext } from '@/contexts/LayoutContext'
 import useDynamicUrl from '@/hooks/use-dynamic-url'
 import { Button } from '@heroui/button'
@@ -32,9 +31,9 @@ const Navbar: React.FC = () => {
             Agents
           </Button>
 
-          <Link to="/" className="hidden px-3 text-xl font-bold text-gray-800 dark:text-white md:flex">
+          {/* <Link to="/" className="hidden px-3 text-xl font-bold text-gray-800 dark:text-white md:flex">
             <SwarmTextGradient>SWARM</SwarmTextGradient>
-          </Link>
+          </Link> */}
         </div>
 
         <div className="flex">

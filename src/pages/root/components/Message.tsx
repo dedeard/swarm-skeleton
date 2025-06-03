@@ -1,4 +1,4 @@
-import SwarmTextGradient from '@/components/ui/SwarmTextGradient'
+import { Typewriter } from '@/components/ui/Typewriter'
 import { useAuthStore } from '@/store/auth.store'
 import React, { useMemo } from 'react'
 
@@ -19,10 +19,11 @@ const Message: React.FC = () => {
 
   return (
     <div className="mb-8 rounded-lg border border-primary-500/20 p-6 hover:border-primary-500/50">
-      <h1 className="text-2xl font-semibold leading-tight">
-        {greeting}, <SwarmTextGradient>{user?.user_metadata?.full_name || 'there'}</SwarmTextGradient>! Let's make your life easier and set
-        your agents to work.
-      </h1>
+      <Typewriter
+        className="text-2xl font-semibold leading-tight"
+        text={`${greeting}, ${user?.user_metadata?.full_name || 'there'}! Let's make your life easier and set
+        your agents to work.`}
+      />
     </div>
   )
 }

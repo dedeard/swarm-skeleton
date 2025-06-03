@@ -5,12 +5,21 @@ interface ChatTextAreaProps {
   value: string
   onChange: (event: React.ChangeEvent<HTMLTextAreaElement>) => void
   onKeyDown: (event: React.KeyboardEvent<HTMLTextAreaElement>) => void
+  onFocusChange?: (isFocused: boolean) => void
   placeholder: string
   disabled?: boolean
   isLoading?: boolean
 }
 
-export const ChatTextArea: React.FC<ChatTextAreaProps> = ({ value, onChange, onKeyDown, placeholder, disabled, isLoading }) => {
+export const ChatTextArea: React.FC<ChatTextAreaProps> = ({
+  value,
+  onChange,
+  onFocusChange,
+  onKeyDown,
+  placeholder,
+  disabled,
+  isLoading,
+}) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   useEffect(() => {
@@ -21,6 +30,18 @@ export const ChatTextArea: React.FC<ChatTextAreaProps> = ({ value, onChange, onK
       textareaRef.current.style.height = `${Math.max(scrollHeight, minHeight)}px`
     }
   }, [value])
+
+  const handleFocus = () => {
+    if (onFocusChange) {
+      onFocusChange(true)
+    }
+  }
+
+  const handleBlur = () => {
+    if (onFocusChange) {
+      onFocusChange(false)
+    }
+  }
 
   return (
     <div className="relative max-h-28 min-h-[34px] flex-grow">
@@ -36,6 +57,8 @@ export const ChatTextArea: React.FC<ChatTextAreaProps> = ({ value, onChange, onK
           value={value}
           onChange={onChange}
           onKeyDown={onKeyDown}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
           placeholder={isLoading ? 'Sending...' : placeholder}
           className="min-h-[24px] w-full resize-none bg-transparent p-3 text-sm text-gray-100 placeholder:text-neutral-400 focus:outline-none"
           rows={1}
