@@ -6,11 +6,10 @@ interface SubmitButtonProps {
   onClick: () => void
   disabled?: boolean
   isLoading?: boolean
-  LoadingIcon: React.ElementType
   SendIcon: React.ElementType
 }
 
-export const SubmitButton: React.FC<SubmitButtonProps> = ({ onClick, disabled, isLoading, LoadingIcon, SendIcon }) => {
+export const SubmitButton: React.FC<SubmitButtonProps> = ({ onClick, disabled, isLoading, SendIcon }) => {
   return (
     <button
       type="button"

@@ -1,7 +1,7 @@
 import { useChatContext } from '@/contexts/ChatContext'
 import { useChatUIContext } from '@/contexts/ChatUIContext'
 import { cn } from '@heroui/theme'
-import { HomeIcon, Loader2Icon, MicIcon, SendIcon, UploadIcon, XIcon } from 'lucide-react'
+import { HomeIcon, MicIcon, SendIcon, UploadIcon, XIcon } from 'lucide-react'
 import React, { useState } from 'react'
 import { Link } from 'react-router-dom'
 import ActionButton from './ActionButton'
@@ -129,13 +129,7 @@ const ChatInterface: React.FC = () => {
                 iconColorClass="text-primary-500"
                 hoverIconColorClass="hover:text-primary-600"
               />
-              <SubmitButton
-                onClick={handleSend}
-                disabled={isSendDisabled}
-                isLoading={isSendingMessage}
-                LoadingIcon={Loader2Icon}
-                SendIcon={SendIcon}
-              />
+              <SubmitButton onClick={handleSend} disabled={isSendDisabled} isLoading={isSendingMessage} SendIcon={SendIcon} />
             </div>
           </div>
         </div>
