@@ -48,7 +48,7 @@ const ChatInterface: React.FC = () => {
   const tabsExists = !!chatUiStore.agents.length
 
   return (
-    <div className="px-3">
+    <div className="px-3 pb-3">
       <div className="relative top-px mx-auto flex w-full max-w-2xl items-end space-x-1">
         {!!tabsExists && (
           <Link
@@ -87,7 +87,7 @@ const ChatInterface: React.FC = () => {
       <div
         className={cn(
           !tabsExists && 'rounded-tl-medium',
-          'mx-auto flex w-full max-w-2xl flex-col rounded-tr-medium border border-b-0 border-primary-500/30 bg-black pt-3',
+          'mx-auto flex w-full max-w-2xl flex-col rounded-b-medium rounded-tr-medium border border-primary-500/30 bg-black pb-3 pt-3',
         )}
       >
         {isFocus && !inputValue.trim().length && !localChats.length && (
