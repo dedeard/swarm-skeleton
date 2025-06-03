@@ -54,7 +54,7 @@ const ChatInterface: React.FC = () => {
           <Link
             to="/"
             className={cn(
-              'block rounded-t border border-primary-500/30 bg-black px-3 py-2 text-sm font-semibold uppercase',
+              'block rounded-t border border-primary-500/30 bg-white px-3 py-2 text-sm font-semibold uppercase dark:bg-black',
               !chatUiStore.active && 'bg-primary-600 text-white',
             )}
           >
@@ -67,7 +67,7 @@ const ChatInterface: React.FC = () => {
               to={`/?agent=${agent.agent_id}`}
               className={cn(
                 'flex max-w-32 items-center gap-1 rounded-t border border-primary-500/30 px-2 py-1 pr-6 text-xs',
-                chatUiStore.activeIndex === i ? 'bg-primary-600' : 'bg-black hover:bg-primary-500/5',
+                chatUiStore.activeIndex === i ? 'bg-primary-600 text-white' : 'bg-white hover:bg-primary-500/5 dark:bg-black',
               )}
             >
               <div className="w-4">
@@ -77,7 +77,10 @@ const ChatInterface: React.FC = () => {
             </Link>
             <button
               onClick={() => chatUiStore.closeByIndex(i)}
-              className="absolute right-2 top-1/2 z-10 -translate-y-1/2 cursor-pointer text-xs hover:text-red-600"
+              className={cn(
+                'absolute right-2 top-1/2 z-10 -translate-y-1/2 cursor-pointer text-xs text-neutral-800 hover:!text-red-600 dark:text-white',
+                chatUiStore.activeIndex === i && '!text-white',
+              )}
             >
               <XIcon size={12} />
             </button>
@@ -87,7 +90,7 @@ const ChatInterface: React.FC = () => {
       <div
         className={cn(
           !tabsExists && 'rounded-tl-medium',
-          'mx-auto flex w-full max-w-2xl flex-col rounded-b-medium rounded-tr-medium border border-primary-500/30 bg-black pb-3 pt-3',
+          'mx-auto flex w-full max-w-2xl flex-col rounded-b-medium rounded-tr-medium border border-primary-500/30 bg-white pb-3 pt-3 dark:bg-black',
         )}
       >
         {isFocus && !inputValue.trim().length && !localChats.length && (
@@ -104,7 +107,7 @@ const ChatInterface: React.FC = () => {
           </div>
         )}
 
-        <div className="relative rounded-medium bg-transparent shadow-lg">
+        <div className="relative rounded-medium bg-transparent">
           <div className="flex w-full items-end px-3 pt-0">
             <div className="flex h-[50px] items-center gap-3">
               <ActionButton
